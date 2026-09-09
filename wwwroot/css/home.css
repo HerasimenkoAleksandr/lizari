@@ -1,0 +1,232 @@
+﻿/* =========================================
+   LIZARI — HOME PAGE
+   ========================================= */
+
+
+/* =========================================
+   СТРАНИЦА
+   ========================================= */
+
+html,
+body {
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+}
+
+
+/* =========================================
+   ГЛАВНЫЙ ЭКРАН
+   ========================================= */
+
+.lizari-hero {
+    width: 100vw;
+    height: 100vh;
+    position: relative;
+    overflow: hidden;
+    background: radial-gradient( ellipse at 15% 15%, #fbf8f4 0%, transparent 40% ), radial-gradient( ellipse at 85% 85%, #d5c5b7 0%, transparent 48% ), linear-gradient( 135deg, #f1ebe5 0%, #e2d7cd 45%, #f6f1eb 100% );
+}
+
+
+/* =========================================
+   ЛОГОТИП
+   ========================================= */
+
+.lizari-logo {
+    width: 55%;
+    max-width: 900px;
+    position: relative;
+    z-index: 5;
+    user-select: none;
+    pointer-events: none;
+}
+
+
+/* =========================================
+   PET
+   ========================================= */
+
+.pet-link {
+    margin-top: 3rem;
+    position: relative;
+    z-index: 5;
+    color: #181512;
+    font-size: 1.05rem;
+    font-weight: 400;
+    letter-spacing: 0.4rem;
+    transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+
+    .pet-link:hover {
+        color: #181512;
+        opacity: 0.65;
+        transform: translateY(-2px);
+    }
+
+
+/* =========================================
+   СТРЕЛКА PET
+   ========================================= */
+
+.pet-arrow {
+    display: inline-block;
+    font-size: 1.6rem;
+    letter-spacing: normal;
+    transition: transform 0.35s ease;
+}
+
+
+.pet-link:hover .pet-arrow {
+    transform: translateX(10px);
+}
+
+
+/* =========================================
+   ВОЛНЫ — ОБЩИЕ НАСТРОЙКИ
+   ========================================= */
+
+.wave {
+    position: absolute;
+    width: 160%;
+    height: 55%;
+    left: -30%;
+    border-radius: 45% 55% 50% 50%;
+    filter: blur(25px);
+    pointer-events: none;
+    will-change: transform;
+}
+
+
+/* =========================================
+   ВОЛНА №1
+   Верхняя светлая
+   ========================================= */
+.wave-one {
+    top: -18%;
+    background: linear-gradient( 110deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.92) 38%, rgba(220, 202, 185, 0.40) 70%, rgba(255, 255, 255, 0.05) 100% );
+    animation: waveOne 4s ease-in-out infinite alternate;
+}
+
+.wave-two {
+    top: 37%;
+    background: linear-gradient( 120deg, rgba(184, 151, 125, 0.10) 0%, rgba(199, 171, 148, 0.48) 28%, rgba(255, 255, 255, 0.76) 55%, rgba(180, 147, 120, 0.30) 78%, rgba(255, 255, 255, 0.05) 100% );
+    animation: waveTwo 3s ease-in-out infinite alternate;
+}
+
+.wave-three {
+    bottom: -22%;
+    background: linear-gradient( 105deg, rgba(255, 255, 255, 0.10) 0%, rgba(255, 255, 255, 0.72) 30%, rgba(188, 157, 132, 0.44) 60%, rgba(245, 236, 227, 0.65) 82%, rgba(255, 255, 255, 0.10) 100% );
+    animation: waveThree 4s ease-in-out infinite alternate;
+}
+
+
+/* =========================================
+   АНИМАЦИЯ ВЕРХНЕЙ ВОЛНЫ
+   ========================================= */
+@keyframes waveOne {
+
+    0% {
+        transform: translate3d(-18%, -8%, 0) rotate(-12deg) scale(1);
+    }
+
+    50% {
+        transform: translate3d(4%, 10%, 0) rotate(-4deg) scale(1.14);
+    }
+
+    100% {
+        transform: translate3d(18%, 4%, 0) rotate(4deg) scale(1.22);
+    }
+}
+
+@keyframes waveTwo {
+
+    0% {
+        transform: translate3d(16%, 10%, 0) rotate(10deg) scale(1.05);
+    }
+
+    50% {
+        transform: translate3d(-4%, -8%, 0) rotate(0deg) scale(1.15);
+    }
+
+    100% {
+        transform: translate3d(-18%, -12%, 0) rotate(-8deg) scale(1.24);
+    }
+}
+
+@keyframes waveThree {
+
+    0% {
+        transform: translate3d(-15%, 8%, 0) rotate(-8deg) scale(1.05);
+    }
+
+    50% {
+        transform: translate3d(2%, -6%, 0) rotate(0deg) scale(1.15);
+    }
+
+    100% {
+        transform: translate3d(18%, -14%, 0) rotate(6deg) scale(1.25);
+    }
+}
+
+
+/* =========================================
+   ПЛАНШЕТ
+   ========================================= */
+
+@media (max-width: 992px) {
+
+    .lizari-logo {
+        width: 70%;
+        max-width: 800px;
+    }
+}
+
+
+/* =========================================
+   ТЕЛЕФОН
+   ========================================= */
+
+@media (max-width: 576px) {
+
+    .lizari-logo {
+        width: 88%;
+        max-width: none;
+    }
+
+
+    .pet-link {
+        margin-top: 2.5rem;
+        font-size: 0.9rem;
+        letter-spacing: 0.3rem;
+    }
+
+
+    .pet-arrow {
+        font-size: 1.4rem;
+    }
+
+
+    .wave {
+        width: 210%;
+        left: -55%;
+        height: 50%;
+    }
+
+
+    .wave-one {
+        top: -10%;
+    }
+
+
+    .wave-two {
+        top: 38%;
+    }
+
+
+    .wave-three {
+        bottom: -15%;
+    }
+}

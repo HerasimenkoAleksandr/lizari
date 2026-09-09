@@ -1,0 +1,39 @@
+﻿@{
+    ViewData["Title"] = "LIZARI";
+    Layout = "_LandingLayout";
+}
+
+@section Styles {
+    <link rel="stylesheet"
+          href="~/css/home.css"
+          asp-append-version="true" />
+}
+
+<section class="lizari-hero vh-100 vw-100 position-relative overflow-hidden">
+
+    <!-- Движущиеся волны -->
+    <div class="wave wave-one"></div>
+    <div class="wave wave-two"></div>
+    <div class="wave wave-three"></div>
+
+    <!-- Основное содержимое -->
+    <div class="position-relative h-100 d-flex flex-column
+                justify-content-center align-items-center z-1">
+
+        <img src="~/pictures/logo3.png"
+             class="lizari-logo img-fluid"
+             alt="LIZARI - Stay on Your Way" />
+
+        <a asp-controller="Pet"
+           asp-action="Index"
+           class="pet-link text-decoration-none
+                  d-flex align-items-center gap-3">
+
+            <span>PET</span>
+            <span class="pet-arrow">→</span>
+
+        </a>
+
+    </div>
+
+</section>
