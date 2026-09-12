@@ -1,0 +1,142 @@
+﻿
+body {
+    background-color: #f7f6f2;
+    color: #222;
+}
+
+.navbar-brand {
+    font-weight: 700;
+    letter-spacing: 2px;
+}
+
+.hero {
+    min-height: 90vh;
+    display: flex;
+    align-items: center;
+}
+
+.hero-image {
+    width: 100%;
+    max-height: 620px;
+    object-fit: cover;
+    border-radius: 24px;
+}
+
+.price {
+    font-size: 2.2rem;
+    font-weight: 700;
+}
+
+.feature-card {
+    background-color: white;
+    border-radius: 18px;
+    padding: 24px;
+    height: 100%;
+}
+
+.product-section {
+    background-color: white;
+}
+
+.buy-box {
+    background-color: #f2f1ec;
+    border-radius: 24px;
+}
+
+.footer {
+    background-color: #1f1f1f;
+    color: white;
+}
+
+.btn-buy {
+    padding: 14px 28px;
+    font-size: 1.1rem;
+}
+
+.small-muted {
+    color: #777;
+}
+
+
+/*текст сокращенний при описании*/
+
+.product-description {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    overflow: hidden;
+    margin-bottom: 0;
+}
+
+    .product-description.expanded {
+        display: block;
+    }
+
+.description-toggle {
+    margin-top: 8px;
+    padding: 0;
+    border: 0;
+    background: none;
+    color: #222;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+    .description-toggle:hover {
+        text-decoration: underline;
+    }
+
+/* конец текст сокращенний при описании*/
+
+
+/* Other stoune*/
+.product-card {
+    height: 100%;
+}
+
+.product-card-image {
+    overflow: hidden;
+    border-radius: 18px;
+    background-color: white;
+}
+
+    .product-card-image img {
+        width: 100%;
+        aspect-ratio: 1 / 1;
+        object-fit: cover;
+        transition: transform 0.3s ease;
+    }
+
+.product-card:hover .product-card-image img {
+    transform: scale(1.04);
+}
+
+.product-card-title {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    overflow: hidden;
+    min-height: 2.4em;
+}
+/* end Other stoune*/
+
+/* logo*/
+.navbar-logo {
+    height: 45px;
+    width: auto;
+    object-fit: contain;
+}
+/* end logo*/
+
+
+/*futer*/
+.footer {
+    background-color: #1f1f1f;
+    color: white;
+}
+
+.footer-logo {
+    height: 35px;
+    width: auto;
+}
+/* end futer*/

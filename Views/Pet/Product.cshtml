@@ -1,0 +1,643 @@
+﻿@using lizari.Models.PetModels
+@model List<SupplierProduct>
+
+@{
+    var productId = (int)ViewBag.ProductId;
+
+    var product = Model.FirstOrDefault(p => p.Id == productId);
+
+    var otherProducts = Model
+        .Where(p => p.Id != productId && p.Available)
+        .Take(4)
+        .ToList();
+
+    ViewData["Title"] = product?.Name;
+}
+
+@if (product == null)
+{
+    <div class="container py-5">
+        <div class="alert alert-warning">
+            Товари не знайдено.
+        </div>
+    </div>
+
+    return;
+}
+@section Styles {
+    <link rel="stylesheet"
+          href="~/css/Petcss/pet.css"
+          asp-append-version="true" />
+}
+
+
+<!-- HEADER -->
+
+<nav class="navbar navbar-expand-lg bg-white shadow-sm">
+
+    <div class="container">
+
+        <a class="navbar-brand d-flex align-items-center"
+           asp-controller="Pet"
+           asp-action="Index">
+
+            <img src="~/pictures/logo3.png"
+                 alt="LIZARI"
+                 class="navbar-logo">
+
+            <span class="fw-normal fs-7 ms-2 text-dark">Pet</span>
+
+        </a>
+
+
+        <a href="#buy"
+           class="btn btn-dark rounded-pill px-4">
+
+            Купити
+
+        </a>
+
+    </div>
+
+</nav>
+
+
+
+<!-- HERO -->
+
+<section class="hero py-5">
+
+    <div class="container">
+
+        <div class="row align-items-center g-5">
+
+
+            <!-- Фото -->
+
+            <div class="col-lg-6">
+
+                <img src="@product.Picture"
+                     class="hero-image shadow-sm"
+                     alt="@product.Name">
+
+            </div>
+
+
+            <!-- Информация -->
+
+            <div class="col-lg-6">
+
+
+                @if (product.Available)
+                {
+                    <span class="badge bg-success  mb-3">
+                        В наявності
+                    </span>
+                }
+                else
+                {
+                    <span class="badge bg-secondary mb-3">
+                        Немає в наявності
+                    </span>
+                }
+
+
+                <h1 class="display-5 fw-bold mb-3">
+
+                    @product.Name
+
+                </h1>
+
+
+                @*     <p class="lead text-secondary">
+
+                    @product.Description
+
+                </p> *@
+                <div class="product-description-wrapper">
+
+                    <p id="productDescription"
+                       class="lead text-secondary product-description">
+                        @product.Description
+                    </p>
+
+                    <button type="button"
+                            id="descriptionToggle"
+                            class="description-toggle">
+                        Читати далі
+                    </button>
+
+                </div>
+
+                <div class="mt-4">
+
+                    <p class="mb-1">
+
+                        <strong>Виробник:</strong>
+
+                        @product.Vendor
+
+                    </p>
+
+
+                    <p class="mb-1">
+
+                        <strong>Код товару:</strong>
+
+                        @product.VendorCode
+
+                    </p>
+
+
+                    <p>
+
+                        <strong>Залишок:</strong>
+
+                        @product.QuantityInStock шт.
+
+                    </p>
+
+                </div>
+
+
+             
+
+
+                @if (product.Available)
+                {
+                    <div class="price mt-4 mb-4">
+
+                        @product.Price.ToString("N0") ₴
+
+                    </div>
+
+                    <a href="#buy"
+                       class="btn btn-dark btn-buy rounded-pill px-5">
+
+                        Замовити
+
+                    </a>
+                    <p class="small-muted mt-3">
+
+                        Доставка Новою Поштою по Україні
+
+                    </p>
+                }
+                else
+                {
+                    <div class="price text-secondary opacity-25 mt-4 mb-4">
+                        @product.Price.ToString("N0") ₴
+                    </div>
+                   @*  <button type="button"
+                            class="btn btn-secondary btn-buy rounded-pill px-5"
+                            disabled>
+
+                        Немає в наявності
+
+                    </button> *@
+                  
+                }
+
+
+               
+
+            </div>
+
+        </div>
+
+    </div>
+
+</section>
+
+
+
+<!-- FEATURES -->
+
+<section class="py-5">
+
+    <div class="container">
+
+        <div class="text-center mb-5">
+
+            <h2 class="fw-bold">
+                Чому улюбленцю буде зручно
+            </h2>
+
+            <p class="text-secondary">
+                Продумана конструкція для щоденного відпочинку
+            </p>
+
+        </div>
+
+
+        <div class="row g-4">
+
+
+            <div class="col-md-6 col-lg-3">
+
+                <div class="feature-card shadow-sm">
+
+                    <h4>
+                        ✓ Тримає форму
+                    </h4>
+
+                    <p class="text-secondary mb-0">
+                        Щільний наповнювач не збивається
+                        та не провалюється під вагою тварини.
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <div class="col-md-6 col-lg-3">
+
+                <div class="feature-card shadow-sm">
+
+                    <h4>
+                        ✓ Знімний чохол
+                    </h4>
+
+                    <p class="text-secondary mb-0">
+                        Наповнювач можна легко витягнути,
+                        а чохол випрати.
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <div class="col-md-6 col-lg-3">
+
+                <div class="feature-card shadow-sm">
+
+                    <h4>
+                        ✓ Без різкого запаху
+                    </h4>
+
+                    <p class="text-secondary mb-0">
+                        Матеріали без неприємного
+                        хімічного запаху.
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <div class="col-md-6 col-lg-3">
+
+                <div class="feature-card shadow-sm">
+
+                    <h4>
+                        ✓ Універсальний
+                    </h4>
+
+                    <p class="text-secondary mb-0">
+                        Підходить для сну,
+                        відпочинку або як місце біля вікна.
+                    </p>
+
+                </div>
+
+            </div>
+
+
+        </div>
+
+    </div>
+
+</section>
+
+
+
+<!-- PRODUCT DESCRIPTION -->
+
+<section class="product-section py-5">
+
+    <div class="container">
+
+        <div class="row justify-content-center">
+
+            <div class="col-lg-8">
+
+                <h2 class="fw-bold mb-4 text-center">
+                    Детальніше про товар
+                </h2>
+
+
+                <p class="fs-5 text-secondary">
+
+                    @product.Description
+
+                </p>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</section>
+
+
+
+<!-- CHARACTERISTICS -->
+
+<section class="py-5">
+
+    <div class="container">
+
+        <div class="row align-items-center g-5">
+
+
+            <div class="col-lg-6">
+
+                <h2 class="fw-bold">
+                    Обирайте комфорт для вашого улюбленця
+                </h2>
+
+                <p class="fs-5 text-secondary mt-3">
+                    Перед замовленням зверніть увагу
+                    на розмір та характеристики товару.
+                </p>
+
+                <p class="fs-5 text-secondary">
+                    Якщо потрібна допомога —
+                    ми допоможемо підібрати відповідний варіант.
+                </p>
+
+            </div>
+
+
+
+            <div class="col-lg-6">
+
+                <div class="buy-box p-5">
+
+                    <h4 class="fw-bold">
+                        Характеристики
+                    </h4>
+
+                    <hr>
+
+
+                    <p>
+                        <strong>Виробник:</strong>
+
+                        @product.Vendor
+                    </p>
+
+
+                    <p>
+                        <strong>Артикул:</strong>
+
+                        @product.VendorCode
+                    </p>
+
+
+                    <p>
+                        <strong>Категорія:</strong>
+
+                        @product.CategoryId
+                    </p>
+
+
+                    <p>
+                        <strong>Кількість:</strong>
+
+                        @product.QuantityInStock шт.
+                    </p>
+
+
+                    <p>
+
+                        <strong>Наявність:</strong>
+
+                        @if (product.Available)
+                        {
+                            <span>є в наявності</span>
+                        }
+                        else
+                        {
+                            <span>немає в наявності</span>
+                        }
+
+                    </p>
+
+
+                    <p class="mb-0">
+
+                        <strong>Доставка:</strong>
+
+                        Нова Пошта
+
+                    </p>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</section>
+
+
+
+
+
+        <!-- Other stoune -->
+        <section class="product-section py-5">
+
+            <div class="container">
+
+                <div class="text-center mb-5">
+
+                    <h2 class="fw-bold">
+                        Вам також може сподобатися
+                    </h2>
+
+                    <p class="text-secondary">
+                        Інші товари для комфорту вашого улюбленця
+                    </p>
+
+                </div>
+
+
+                <div class="row g-4 justify-content-center">
+
+                    @foreach (var item in otherProducts)
+                    {
+                        <div class="col-6 col-md-4 col-lg">
+
+                            <div class="product-card h-100">
+
+                                <!-- Фото -->
+
+                                <div class="product-card-image position-relative">
+
+                                    <img src="@item.Picture"
+                                         class="img-fluid w-100"
+                                         alt="@item.Name">
+
+                                    @if (item.Available)
+                                    {
+                                        <span class="badge bg-success text-white
+                                                             position-absolute top-0 start-0 m-2">
+                                            В наявності
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-secondary text-white
+                                                                     position-absolute top-0 start-0 m-2">
+                                            Не в наявності
+                                        </span>
+                                    }
+
+                                </div>
+
+
+                                <!-- Информация -->
+
+                                <div class="pt-3">
+
+                                    <h3 class="h6 fw-bold product-card-title">
+
+                                        @item.Name
+
+                                    </h3>
+
+
+                                    <p class="small text-secondary mb-2">
+
+                                        Артикул: @item.VendorCode
+
+                                    </p>
+
+
+                                    <div class="fw-bold fs-5 mb-3">
+
+                                        @item.Price.ToString("N0") ₴
+
+                                    </div>
+
+                                    <a asp-controller="Pet"
+                                       asp-action="Product"
+                                       asp-route-id="@item.Id"
+                                       class="btn btn-outline-dark
+                                              rounded-pill w-100">
+
+                                        Переглянути
+
+                                    </a>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+                    }
+
+                </div>
+
+    </div>
+
+</section>
+
+
+
+<!-- DELIVERY -->
+
+<section class="py-5">
+
+    <div class="container">
+
+        <div class="row text-center g-4">
+
+
+            <div class="col-md-4">
+
+                <h5 class="fw-bold">
+                    🚚 Доставка
+                </h5>
+
+                <p class="text-secondary">
+                    Новою Поштою по всій Україні
+                </p>
+
+            </div>
+
+
+            <div class="col-md-4">
+
+                <h5 class="fw-bold">
+                    📦 Відправлення
+                </h5>
+
+                <p class="text-secondary">
+                    Товар відправляється після
+                    підтвердження замовлення
+                </p>
+
+            </div>
+
+
+            <div class="col-md-4">
+
+                <h5 class="fw-bold">
+                    💬 Підтримка
+                </h5>
+
+                <p class="text-secondary">
+                    Допоможемо підібрати
+                    відповідний товар
+                </p>
+
+            </div>
+
+
+        </div>
+
+    </div>
+
+</section>
+
+<footer class="footer py-4">
+
+    <div class="container">
+
+        <div class="d-flex flex-column flex-md-row
+                    justify-content-between
+                    align-items-center gap-3">
+
+            <div class="d-flex align-items-center">
+
+                <img src="~/pictures/logo4.png"
+                     alt="LIZARI"
+                     class="footer-logo">
+
+                <span class=" fw-normal fs-8 ms-2 ">
+                    Pet
+                </span>
+
+            </div>
+
+            <div class="small">
+                © 2026 LIZARI. Усі права захищені.
+            </div>
+
+        </div>
+
+    </div>
+
+</footer>
+
+@section Scripts {
+    <script src="~/js/pet.js"
+            asp-append-version="true"></script>
+}

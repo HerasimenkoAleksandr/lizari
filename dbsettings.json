@@ -1,0 +1,10 @@
+{
+  "ConnectionStrings": {
+    "DbConnection": "Server=93.190.46.34,33301;Database=uh1960713_Pet;User Id=uh1960713_lizari;Password=15061991g;TrustServerCertificate=True;"
+  },
+
+  "Admin": {
+    "Password": "15061991g"
+  }
+}
+//TrustServerCertificate=True;
