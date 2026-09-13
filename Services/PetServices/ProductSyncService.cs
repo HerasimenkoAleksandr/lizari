@@ -88,29 +88,51 @@ public class ProductSyncService : IProductSyncService
     }
 
     public async Task<(bool Success, string Message)>
-        AddSelectedProductAsync(int supplierProductId)
+     AddSelectedProductAsync(string searchValue)
     {
-        if (supplierProductId <= 0)
+        searchValue = searchValue?.Trim() ?? string.Empty;
+
+        if (string.IsNullOrWhiteSpace(searchValue))
         {
-            return (false, "Укажите правильный ID товара.");
+            return (
+                false,
+                "Укажите ID или артикул товара поставщика.");
         }
 
-        bool alreadyExists = await _context.Products.AnyAsync(
-            product => product.SupplierProductId == supplierProductId);
+        var supplierProducts =
+            await _feedService.GetProductsAsync();
 
-        if (alreadyExists)
-        {
-            return (false, "Этот товар уже добавлен.");
-        }
+        // Сначала ищем по ID поставщика
+        var supplierProduct = int.TryParse(
+            searchValue,
+            out int supplierProductId)
+                ? supplierProducts.FirstOrDefault(
+                    product => product.Id == supplierProductId)
+                : null;
 
-        var supplierProducts = await _feedService.GetProductsAsync();
-
-        var supplierProduct = supplierProducts.FirstOrDefault(
-            product => product.Id == supplierProductId);
+        // Если по ID не нашли — ищем по артикулу
+        supplierProduct ??= supplierProducts.FirstOrDefault(
+            product => string.Equals(
+                product.VendorCode?.Trim(),
+                searchValue,
+                StringComparison.OrdinalIgnoreCase));
 
         if (supplierProduct is null)
         {
-            return (false, "Товар с таким ID не найден в XML.");
+            return (
+                false,
+                $"Товар с ID или артикулом «{searchValue}» не найден в XML.");
+        }
+
+        bool alreadyExists = await _context.Products.AnyAsync(
+            product =>
+                product.SupplierProductId == supplierProduct.Id);
+
+        if (alreadyExists)
+        {
+            return (
+                false,
+                "Этот товар уже добавлен.");
         }
 
         var productEntity = new ProductEntity
@@ -121,7 +143,7 @@ public class ProductSyncService : IProductSyncService
             Title = supplierProduct.Name,
             Description = supplierProduct.Description,
 
-            // Товар не показываем до ручного заполнения цены
+            // Товар не показываем до ручного заполнения
             IsPublished = false,
 
             SupplierPrice = supplierProduct.Price,
@@ -139,7 +161,9 @@ public class ProductSyncService : IProductSyncService
         _context.Products.Add(productEntity);
         await _context.SaveChangesAsync();
 
-        return (true, "Товар успешно добавлен.");
+        return (
+            true,
+            $"Товар «{supplierProduct.Name}» успешно добавлен.");
     }
 
     public async Task<int> SyncSelectedProductsAsync()

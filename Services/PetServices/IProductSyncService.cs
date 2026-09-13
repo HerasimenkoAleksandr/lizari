@@ -2,9 +2,9 @@
 
 public interface IProductSyncService
 {
-    // Добавляет в базу выбранный товар по ID поставщика
+    // Добавляет товар по ID или артикулу поставщика
     Task<(bool Success, string Message)> AddSelectedProductAsync(
-        int supplierProductId);
+        string searchValue);
 
     // Обновляет цены, наличие и остатки всех выбранных товаров
     Task<int> SyncSelectedProductsAsync();
@@ -13,3 +13,4 @@ public interface IProductSyncService
     Task<(bool Success, string Message)> RefreshSupplierProductAsync(
         int productId);
 }
+

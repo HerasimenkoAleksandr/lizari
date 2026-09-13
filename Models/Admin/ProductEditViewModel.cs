@@ -78,4 +78,6 @@ public class ProductEditViewModel
     public string SupplierDescription { get; set; } = string.Empty;
 
     public int CategoryId { get; set; }
+
+    public bool IsMainProduct { get; set; }
 }

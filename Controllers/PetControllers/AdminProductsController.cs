@@ -41,14 +41,23 @@ public class AdminProductsController : Controller
     // =========================
     // ДОБАВЛЕНИЕ ТОВАРА
     // =========================
-
     [HttpPost("add")]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Add(int supplierProductId)
+    public async Task<IActionResult> Add(string? supplierProductId)
     {
+        supplierProductId = supplierProductId?.Trim() ?? string.Empty;
+
+        if (string.IsNullOrWhiteSpace(supplierProductId))
+        {
+            TempData["Error"] =
+                "Введите ID товара или артикул поставщика.";
+
+            return RedirectToAction(nameof(Index));
+        }
+
         var result =
-            await _productSyncService.AddSelectedProductAsync(
-                supplierProductId);
+     await _productSyncService.AddSelectedProductAsync(
+         supplierProductId);
 
         TempData[result.Success ? "Success" : "Error"] =
             result.Message;
@@ -158,6 +167,7 @@ public class AdminProductsController : Controller
 
             SelectionTitle = product.SelectionTitle,
             SelectionDescription = product.SelectionDescription,
+            IsMainProduct = product.IsMainProduct,
 
             IsPublished = product.IsPublished
         };
@@ -319,6 +329,23 @@ public class AdminProductsController : Controller
         product.SelectionDescription =
             model.SelectionDescription?.Trim() ?? string.Empty;
 
+        if (model.IsMainProduct)
+        {
+            var otherMainProducts = await _context.Products
+                .Where(item =>
+                    item.Id != product.Id &&
+                    item.IsMainProduct)
+                .ToListAsync();
+
+            foreach (var otherProduct in otherMainProducts)
+            {
+                otherProduct.IsMainProduct = false;
+            }
+        }
+
+        product.IsMainProduct = model.IsMainProduct;
+        product.IsPublished = model.IsPublished;
+
         product.IsPublished = model.IsPublished;
 
         await _context.SaveChangesAsync();
@@ -348,5 +375,35 @@ public class AdminProductsController : Controller
         model.VendorCode = product.VendorCode;
         model.Vendor = product.Vendor;
         model.SupplierUpdatedAt = product.SupplierUpdatedAt;
+    }
+
+    // =========================
+    // УДАЛЕНИЕ ТОВАРА
+    // =========================
+
+    [HttpPost("delete/{id:int}")]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Delete(int id)
+    {
+        var product = await _context.Products
+            .FirstOrDefaultAsync(product => product.Id == id);
+
+        if (product is null)
+        {
+            TempData["Error"] = "Товар не найден в базе.";
+
+            return RedirectToAction(nameof(Index));
+        }
+
+        string productTitle = product.Title;
+
+        _context.Products.Remove(product);
+
+        await _context.SaveChangesAsync();
+
+        TempData["Success"] =
+            $"Товар «{productTitle}» удалён из базы.";
+
+        return RedirectToAction(nameof(Index));
     }
 }

@@ -1,42 +1,75 @@
-﻿using lizari.Services.PetServices;
+﻿using lizari.Data;
+using lizari.Models.PetModels;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
-namespace lizari.Controllers.PetControllers
+namespace lizari.Controllers.PetControllers;
+
+public class PetController : Controller
 {
-    public class PetController : Controller
+    private readonly DataContext _context;
+    private readonly ILogger<PetController> _logger;
+
+    public PetController(
+        DataContext context,
+        ILogger<PetController> logger)
     {
-        private readonly IProductFeedService _productFeedService;
-        private readonly ILogger<PetController> _logger;
+        _context = context;
+        _logger = logger;
+    }
 
-        public PetController(IProductFeedService productFeedService, ILogger<PetController> logger)
+    // =========================
+    // СПИСОК ТОВАРОВ
+    // =========================
+
+    public async Task<IActionResult> Index()
+    {
+        var products = await _context.Products
+            .AsNoTracking()
+            .Where(product => product.IsPublished)
+            .OrderByDescending(product => product.Id)
+            .ToListAsync();
+
+        return View(products);
+    }
+
+    // =========================
+    // ЛЕНДИНГ ТОВАРА
+    // =========================
+
+    public async Task<IActionResult> Product(int id)
+    {
+        var product = await _context.Products
+            .AsNoTracking()
+            .FirstOrDefaultAsync(product =>
+                product.Id == id &&
+                product.IsPublished);
+
+        if (product is null)
         {
-            _productFeedService = productFeedService;
-            _logger = logger;
+            _logger.LogWarning(
+                "Опубликованный товар {ProductId} не найден.",
+                id);
+
+            return NotFound();
         }
 
-        public async Task<IActionResult> Index()
+        var otherProducts = await _context.Products
+            .AsNoTracking()
+            .Where(item =>
+                item.Id != id &&
+                item.IsPublished &&
+                item.Available)
+            .OrderByDescending(item => item.Id)
+            .Take(4)
+            .ToListAsync();
+
+        var model = new ProductLandingViewModel
         {
-            var products = await _productFeedService.GetProductsAsync();
-            var categories = await _productFeedService.GetCategoriesAsync();
+            Product = product,
+            OtherProducts = otherProducts
+        };
 
-            // Передаём список продуктов в представление
-            return View(products);
-        }
-
-        public async Task<IActionResult> Product(int id)
-        {
-            var products = await _productFeedService.GetProductsAsync();
-
-            var product = products.FirstOrDefault(p => p.Id == id);
-
-            if (product == null)
-            {
-                return NotFound();
-            }
-
-            ViewBag.ProductId = id;
-
-            return View(products);
-        }
+        return View(model);
     }
 }

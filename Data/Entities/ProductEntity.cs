@@ -73,4 +73,7 @@ public class ProductEntity
     public string Vendor { get; set; } = string.Empty;
 
     public DateTime? SupplierUpdatedAt { get; set; }
+
+    // Главный товар на первой странице
+    public bool IsMainProduct { get; set; }
 }

@@ -1,29 +1,12 @@
-﻿@using lizari.Models.PetModels
-@model List<SupplierProduct>
+﻿@model lizari.Models.PetModels.ProductLandingViewModel
 
 @{
-    var productId = (int)ViewBag.ProductId;
+    var product = Model.Product;
+    var otherProducts = Model.OtherProducts;
 
-    var product = Model.FirstOrDefault(p => p.Id == productId);
-
-    var otherProducts = Model
-        .Where(p => p.Id != productId && p.Available)
-        .Take(4)
-        .ToList();
-
-    ViewData["Title"] = product?.Name;
+    ViewData["Title"] = product.Title;
 }
 
-@if (product == null)
-{
-    <div class="container py-5">
-        <div class="alert alert-warning">
-            Товари не знайдено.
-        </div>
-    </div>
-
-    return;
-}
 @section Styles {
     <link rel="stylesheet"
           href="~/css/Petcss/pet.css"
@@ -34,7 +17,6 @@
 <!-- HEADER -->
 
 <nav class="navbar navbar-expand-lg bg-white shadow-sm">
-
     <div class="container">
 
         <a class="navbar-brand d-flex align-items-center"
@@ -45,32 +27,28 @@
                  alt="LIZARI"
                  class="navbar-logo">
 
-            <span class="fw-normal fs-7 ms-2 text-dark">Pet</span>
-
+            <span class="fw-normal fs-7 ms-2 text-dark">
+                Pet
+            </span>
         </a>
 
-
-        <a href="#buy"
-           class="btn btn-dark rounded-pill px-4">
-
-            Купити
-
-        </a>
+        @if (product.Available)
+        {
+            <a href="#buy"
+               class="btn btn-dark rounded-pill px-4">
+                Купити
+            </a>
+        }
 
     </div>
-
 </nav>
-
 
 
 <!-- HERO -->
 
 <section class="hero py-5">
-
     <div class="container">
-
         <div class="row align-items-center g-5">
-
 
             <!-- Фото -->
 
@@ -78,7 +56,7 @@
 
                 <img src="@product.Picture"
                      class="hero-image shadow-sm"
-                     alt="@product.Name">
+                     alt="@product.Title">
 
             </div>
 
@@ -87,10 +65,9 @@
 
             <div class="col-lg-6">
 
-
                 @if (product.Available)
                 {
-                    <span class="badge bg-success  mb-3">
+                    <span class="badge bg-success mb-3">
                         В наявності
                     </span>
                 }
@@ -101,276 +78,312 @@
                     </span>
                 }
 
-
                 <h1 class="display-5 fw-bold mb-3">
-
-                    @product.Name
-
+                    @product.Title
                 </h1>
 
+                @if (!string.IsNullOrWhiteSpace(
+                                product.ShortDescription))
+                {
+                    <div class="product-description-wrapper">
 
-                @*     <p class="lead text-secondary">
+                        <p id="productDescription"
+                           class="lead text-secondary product-description">
+                            @product.ShortDescription
+                        </p>
 
-                    @product.Description
+                        <button type="button"
+                                id="descriptionToggle"
+                                class="description-toggle">
+                            Читати далі
+                        </button>
 
-                </p> *@
-                <div class="product-description-wrapper">
-
-                    <p id="productDescription"
-                       class="lead text-secondary product-description">
-                        @product.Description
-                    </p>
-
-                    <button type="button"
-                            id="descriptionToggle"
-                            class="description-toggle">
-                        Читати далі
-                    </button>
-
-                </div>
+                    </div>
+                }
 
                 <div class="mt-4">
 
-                    <p class="mb-1">
+                    @if (!string.IsNullOrWhiteSpace(product.Vendor))
+                    {
+                        <p class="mb-1">
+                            <strong>Виробник:</strong>
+                            @product.Vendor
+                        </p>
+                    }
 
-                        <strong>Виробник:</strong>
-
-                        @product.Vendor
-
-                    </p>
-
-
-                    <p class="mb-1">
-
-                        <strong>Код товару:</strong>
-
-                        @product.VendorCode
-
-                    </p>
-
+                    @if (!string.IsNullOrWhiteSpace(
+                                        product.VendorCode))
+                    {
+                        <p class="mb-1">
+                            <strong>Код товару:</strong>
+                            @product.VendorCode
+                        </p>
+                    }
 
                     <p>
-
                         <strong>Залишок:</strong>
-
                         @product.QuantityInStock шт.
-
                     </p>
 
                 </div>
 
 
-             
-
-
+                <!-- Цена -->
                 @if (product.Available)
                 {
-                    <div class="price mt-4 mb-4">
+                    <div class="mt-4 mb-4">
 
-                        @product.Price.ToString("N0") ₴
+                        @if (product.DiscountPrice is > 0)
+                        {
+                            <div class="d-flex flex-wrap
+                                                align-items-center gap-3">
+
+                                <span class="price text-danger">
+                                    @product.DiscountPrice.Value.ToString("N0") ₴
+                                </span>
+
+                                <span class="text-secondary
+                                                     text-decoration-line-through
+                                                     fs-5">
+                                    @product.Price.ToString("N0") ₴
+                                </span>
+
+                                @if (product.DiscountPercent is > 0)
+                                {
+                                    <span class="badge bg-danger">
+                                        -@product.DiscountPercent.Value.ToString("N0")%
+                                    </span>
+                                }
+
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="price">
+                                @product.Price.ToString("N0") ₴
+                            </div>
+                        }
 
                     </div>
 
                     <a href="#buy"
-                       class="btn btn-dark btn-buy rounded-pill px-5">
-
+                       class="btn btn-dark btn-buy
+                                  rounded-pill px-5">
                         Замовити
-
                     </a>
+
                     <p class="small-muted mt-3">
-
                         Доставка Новою Поштою по Україні
-
                     </p>
                 }
                 else
                 {
-                    <div class="price text-secondary opacity-25 mt-4 mb-4">
-                        @product.Price.ToString("N0") ₴
+                    <div class="price text-secondary
+                                    opacity-25 mt-4 mb-4">
+
+                        @if (product.DiscountPrice is > 0)
+                        {
+                            @product.DiscountPrice.Value.ToString("N0")
+                        }
+                        else
+                        {
+                            @product.Price.ToString("N0")
+                        }
+
+                        ₴
                     </div>
-                   @*  <button type="button"
-                            class="btn btn-secondary btn-buy rounded-pill px-5"
-                            disabled>
-
-                        Немає в наявності
-
-                    </button> *@
-                  
                 }
-
-
-               
 
             </div>
 
         </div>
-
     </div>
-
 </section>
-
 
 
 <!-- FEATURES -->
+@if (!string.IsNullOrWhiteSpace(product.Feature1Title) ||
+     !string.IsNullOrWhiteSpace(product.Feature2Title) ||
+     !string.IsNullOrWhiteSpace(product.Feature3Title) ||
+     !string.IsNullOrWhiteSpace(product.Feature4Title))
+{
+    <section class="py-5">
+        <div class="container">
 
-<section class="py-5">
+            <div class="text-center mb-5">
 
-    <div class="container">
-
-        <div class="text-center mb-5">
-
-            <h2 class="fw-bold">
-                Чому улюбленцю буде зручно
-            </h2>
-
-            <p class="text-secondary">
-                Продумана конструкція для щоденного відпочинку
-            </p>
-
-        </div>
-
-
-        <div class="row g-4">
-
-
-            <div class="col-md-6 col-lg-3">
-
-                <div class="feature-card shadow-sm">
-
-                    <h4>
-                        ✓ Тримає форму
-                    </h4>
-
-                    <p class="text-secondary mb-0">
-                        Щільний наповнювач не збивається
-                        та не провалюється під вагою тварини.
-                    </p>
-
-                </div>
-
-            </div>
-
-
-            <div class="col-md-6 col-lg-3">
-
-                <div class="feature-card shadow-sm">
-
-                    <h4>
-                        ✓ Знімний чохол
-                    </h4>
-
-                    <p class="text-secondary mb-0">
-                        Наповнювач можна легко витягнути,
-                        а чохол випрати.
-                    </p>
-
-                </div>
-
-            </div>
-
-
-            <div class="col-md-6 col-lg-3">
-
-                <div class="feature-card shadow-sm">
-
-                    <h4>
-                        ✓ Без різкого запаху
-                    </h4>
-
-                    <p class="text-secondary mb-0">
-                        Матеріали без неприємного
-                        хімічного запаху.
-                    </p>
-
-                </div>
-
-            </div>
-
-
-            <div class="col-md-6 col-lg-3">
-
-                <div class="feature-card shadow-sm">
-
-                    <h4>
-                        ✓ Універсальний
-                    </h4>
-
-                    <p class="text-secondary mb-0">
-                        Підходить для сну,
-                        відпочинку або як місце біля вікна.
-                    </p>
-
-                </div>
-
-            </div>
-
-
-        </div>
-
-    </div>
-
-</section>
-
-
-
-<!-- PRODUCT DESCRIPTION -->
-
-<section class="product-section py-5">
-
-    <div class="container">
-
-        <div class="row justify-content-center">
-
-            <div class="col-lg-8">
-
-                <h2 class="fw-bold mb-4 text-center">
-                    Детальніше про товар
+                <h2 class="fw-bold">
+                    Чому улюбленцю буде зручно
                 </h2>
 
-
-                <p class="fs-5 text-secondary">
-
-                    @product.Description
-
+                <p class="text-secondary">
+                    Продумана конструкція для щоденного відпочинку
                 </p>
 
             </div>
 
+            <div class="row g-4">
+
+                @if (!string.IsNullOrWhiteSpace(
+                            product.Feature1Title))
+                {
+                    <div class="col-md-6 col-lg-3">
+
+                        <div class="feature-card shadow-sm h-100">
+
+                            <h4>
+                                ✓ @product.Feature1Title
+                            </h4>
+
+                            <p class="text-secondary mb-0">
+                                @product.Feature1Description
+                            </p>
+
+                        </div>
+
+                    </div>
+                }
+
+                @if (!string.IsNullOrWhiteSpace(
+                            product.Feature2Title))
+                {
+                    <div class="col-md-6 col-lg-3">
+
+                        <div class="feature-card shadow-sm h-100">
+
+                            <h4>
+                                ✓ @product.Feature2Title
+                            </h4>
+
+                            <p class="text-secondary mb-0">
+                                @product.Feature2Description
+                            </p>
+
+                        </div>
+
+                    </div>
+                }
+
+                @if (!string.IsNullOrWhiteSpace(
+                            product.Feature3Title))
+                {
+                    <div class="col-md-6 col-lg-3">
+
+                        <div class="feature-card shadow-sm h-100">
+
+                            <h4>
+                                ✓ @product.Feature3Title
+                            </h4>
+
+                            <p class="text-secondary mb-0">
+                                @product.Feature3Description
+                            </p>
+
+                        </div>
+
+                    </div>
+                }
+
+                @if (!string.IsNullOrWhiteSpace(
+                            product.Feature4Title))
+                {
+                    <div class="col-md-6 col-lg-3">
+
+                        <div class="feature-card shadow-sm h-100">
+
+                            <h4>
+                                ✓ @product.Feature4Title
+                            </h4>
+
+                            <p class="text-secondary mb-0">
+                                @product.Feature4Description
+                            </p>
+
+                        </div>
+
+                    </div>
+                }
+
+            </div>
+
         </div>
+    </section>
+}
 
-    </div>
 
-</section>
+<!-- PRODUCT DESCRIPTION -->
+@if (!string.IsNullOrWhiteSpace(product.Description))
+{
+    <section class="product-section py-5">
+        <div class="container">
 
+            <div class="row justify-content-center">
+
+                <div class="col-lg-8">
+
+                    <h2 class="fw-bold mb-4 text-center">
+                        Детальніше про товар
+                    </h2>
+
+                    <p class="fs-5 text-secondary">
+                        @product.Description
+                    </p>
+
+                </div>
+
+            </div>
+
+        </div>
+    </section>
+}
 
 
 <!-- CHARACTERISTICS -->
 
 <section class="py-5">
-
     <div class="container">
 
         <div class="row align-items-center g-5">
 
-
             <div class="col-lg-6">
 
                 <h2 class="fw-bold">
-                    Обирайте комфорт для вашого улюбленця
+
+                    @if (!string.IsNullOrWhiteSpace(
+                                        product.SelectionTitle))
+                    {
+                        @product.SelectionTitle
+                    }
+                    else
+                    {
+                        <text>
+                            Обирайте комфорт для вашого улюбленця
+                        </text>
+                    }
+
                 </h2>
 
-                <p class="fs-5 text-secondary mt-3">
-                    Перед замовленням зверніть увагу
-                    на розмір та характеристики товару.
-                </p>
+                @if (!string.IsNullOrWhiteSpace(
+                                product.SelectionDescription))
+                {
+                    <p class="fs-5 text-secondary mt-3">
+                        @product.SelectionDescription
+                    </p>
+                }
+                else
+                {
+                    <p class="fs-5 text-secondary mt-3">
+                        Перед замовленням зверніть увагу
+                        на розмір та характеристики товару.
+                    </p>
 
-                <p class="fs-5 text-secondary">
-                    Якщо потрібна допомога —
-                    ми допоможемо підібрати відповідний варіант.
-                </p>
+                    <p class="fs-5 text-secondary">
+                        Якщо потрібна допомога —
+                        ми допоможемо підібрати відповідний варіант.
+                    </p>
+                }
 
             </div>
-
 
 
             <div class="col-lg-6">
@@ -383,57 +396,72 @@
 
                     <hr>
 
+                    @if (!string.IsNullOrWhiteSpace(product.Type))
+                    {
+                        <p>
+                            <strong>Тип:</strong>
+                            @product.Type
+                        </p>
+                    }
 
-                    <p>
-                        <strong>Виробник:</strong>
+                    @if (!string.IsNullOrWhiteSpace(product.Size))
+                    {
+                        <p>
+                            <strong>Розмір:</strong>
+                            @product.Size
+                        </p>
+                    }
 
-                        @product.Vendor
-                    </p>
+                    @if (!string.IsNullOrWhiteSpace(product.Color))
+                    {
+                        <p>
+                            <strong>Колір:</strong>
+                            @product.Color
+                        </p>
+                    }
 
+                    @if (!string.IsNullOrWhiteSpace(product.Vendor))
+                    {
+                        <p>
+                            <strong>Виробник:</strong>
+                            @product.Vendor
+                        </p>
+                    }
 
-                    <p>
-                        <strong>Артикул:</strong>
-
-                        @product.VendorCode
-                    </p>
-
-
-                    <p>
-                        <strong>Категорія:</strong>
-
-                        @product.CategoryId
-                    </p>
-
+                    @if (!string.IsNullOrWhiteSpace(
+                                        product.VendorCode))
+                    {
+                        <p>
+                            <strong>Артикул:</strong>
+                            @product.VendorCode
+                        </p>
+                    }
 
                     <p>
                         <strong>Кількість:</strong>
-
                         @product.QuantityInStock шт.
                     </p>
 
-
                     <p>
-
                         <strong>Наявність:</strong>
 
                         @if (product.Available)
                         {
-                            <span>є в наявності</span>
+                            <span class="text-success">
+                                є в наявності
+                            </span>
                         }
                         else
                         {
-                            <span>немає в наявності</span>
+                            <span class="text-secondary">
+                                немає в наявності
+                            </span>
                         }
-
                     </p>
 
-
                     <p class="mb-0">
-
                         <strong>Доставка:</strong>
-
                         Нова Пошта
-
                     </p>
 
                 </div>
@@ -443,122 +471,192 @@
         </div>
 
     </div>
-
 </section>
 
 
+<!-- OTHER PRODUCTS -->
+@if (otherProducts.Count > 0)
+{
+    <section class="product-section py-5">
+        <div class="container">
 
+            <div class="text-center mb-5">
 
+                <h2 class="fw-bold">
+                    Вам також може сподобатися
+                </h2>
 
-        <!-- Other stoune -->
-        <section class="product-section py-5">
+                <p class="text-secondary">
+                    Інші товари для комфорту вашого улюбленця
+                </p>
 
-            <div class="container">
+            </div>
 
-                <div class="text-center mb-5">
+            <div class="row g-4 justify-content-center">
 
-                    <h2 class="fw-bold">
-                        Вам також може сподобатися
-                    </h2>
+                @foreach (var item in otherProducts)
+                {
+                    <div class="col-6 col-md-4 col-lg-3">
 
-                    <p class="text-secondary">
-                        Інші товари для комфорту вашого улюбленця
-                    </p>
+                        <div class="product-card h-100">
 
-                </div>
+                            <div class="product-card-image
+                                                position-relative">
 
+                                <img src="@item.Picture"
+                                     class="img-fluid w-100"
+                                     alt="@item.Title">
 
-                <div class="row g-4 justify-content-center">
+                                @if (item.Available)
+                                {
+                                    <span class="badge bg-success
+                                                             text-white
+                                                             position-absolute
+                                                             top-0 start-0 m-2">
+                                        В наявності
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-secondary
+                                                             text-white
+                                                             position-absolute
+                                                             top-0 start-0 m-2">
+                                        Не в наявності
+                                    </span>
+                                }
 
-                    @foreach (var item in otherProducts)
-                    {
-                        <div class="col-6 col-md-4 col-lg">
+                                @if (item.DiscountPercent is > 0)
+                                {
+                                    <span class="badge bg-danger
+                                                             position-absolute
+                                                             top-0 end-0 m-2">
+                                        -@item.DiscountPercent.Value.ToString("N0")%
+                                    </span>
+                                }
 
-                            <div class="product-card h-100">
+                            </div>
 
-                                <!-- Фото -->
+                            <div class="pt-3">
 
-                                <div class="product-card-image position-relative">
+                                <h3 class="h6 fw-bold
+                                                   product-card-title">
+                                    @item.Title
+                                </h3>
 
-                                    <img src="@item.Picture"
-                                         class="img-fluid w-100"
-                                         alt="@item.Name">
+                                @if (!string.IsNullOrWhiteSpace(
+                                                        item.VendorCode))
+                                {
+                                    <p class="small text-secondary mb-2">
+                                        Артикул: @item.VendorCode
+                                    </p>
+                                }
 
-                                    @if (item.Available)
+                                <div class="mb-3">
+
+                                    @if (item.DiscountPrice is > 0)
                                     {
-                                        <span class="badge bg-success text-white
-                                                             position-absolute top-0 start-0 m-2">
-                                            В наявності
+                                        <span class="fw-bold fs-5
+                                                                 text-danger">
+                                            @item.DiscountPrice.Value.ToString("N0") ₴
+                                        </span>
+
+                                        <span class="small text-secondary
+                                                                 text-decoration-line-through
+                                                                 ms-2">
+                                            @item.Price.ToString("N0") ₴
                                         </span>
                                     }
                                     else
                                     {
-                                        <span class="badge bg-secondary text-white
-                                                                     position-absolute top-0 start-0 m-2">
-                                            Не в наявності
+                                        <span class="fw-bold fs-5">
+                                            @item.Price.ToString("N0") ₴
                                         </span>
                                     }
 
                                 </div>
 
-
-                                <!-- Информация -->
-
-                                <div class="pt-3">
-
-                                    <h3 class="h6 fw-bold product-card-title">
-
-                                        @item.Name
-
-                                    </h3>
-
-
-                                    <p class="small text-secondary mb-2">
-
-                                        Артикул: @item.VendorCode
-
-                                    </p>
-
-
-                                    <div class="fw-bold fs-5 mb-3">
-
-                                        @item.Price.ToString("N0") ₴
-
-                                    </div>
-
-                                    <a asp-controller="Pet"
-                                       asp-action="Product"
-                                       asp-route-id="@item.Id"
-                                       class="btn btn-outline-dark
-                                              rounded-pill w-100">
-
-                                        Переглянути
-
-                                    </a>
-
-                                </div>
+                                <a asp-controller="Pet"
+                                   asp-action="Product"
+                                   asp-route-id="@item.Id"
+                                   class="btn btn-outline-dark
+                                                  rounded-pill w-100">
+                                    Переглянути
+                                </a>
 
                             </div>
 
                         </div>
+
+                    </div>
+                }
+
+            </div>
+
+        </div>
+    </section>
+}
+
+
+<!-- BUY -->
+@if (product.Available)
+{
+    <section id="buy" class="py-5">
+        <div class="container">
+
+            <div class="buy-box p-5 text-center">
+
+                <h2 class="fw-bold mb-3">
+                    Замовити товар
+                </h2>
+
+                <p class="text-secondary mb-4">
+                    Залиште заявку, і ми зв’яжемося з вами
+                    для підтвердження замовлення.
+                </p>
+
+                <div class="mb-4">
+
+                    @if (product.DiscountPrice is > 0)
+                    {
+                        <span class="price text-danger">
+                            @product.DiscountPrice.Value.ToString("N0") ₴
+                        </span>
+
+                        <span class="text-secondary
+                                             text-decoration-line-through
+                                             fs-5 ms-3">
+                            @product.Price.ToString("N0") ₴
+                        </span>
+                    }
+                    else
+                    {
+                        <span class="price">
+                            @product.Price.ToString("N0") ₴
+                        </span>
                     }
 
                 </div>
 
-    </div>
+                <button type="button"
+                        class="btn btn-dark btn-buy
+                                   rounded-pill px-5">
+                    Оформити замовлення
+                </button>
 
-</section>
+            </div>
 
+        </div>
+    </section>
+}
 
 
 <!-- DELIVERY -->
 
 <section class="py-5">
-
     <div class="container">
 
         <div class="row text-center g-4">
-
 
             <div class="col-md-4">
 
@@ -571,7 +669,6 @@
                 </p>
 
             </div>
-
 
             <div class="col-md-4">
 
@@ -586,7 +683,6 @@
 
             </div>
 
-
             <div class="col-md-4">
 
                 <h5 class="fw-bold">
@@ -600,15 +696,15 @@
 
             </div>
 
-
         </div>
 
     </div>
-
 </section>
 
-<footer class="footer py-4">
 
+<!-- FOOTER -->
+
+<footer class="footer py-4">
     <div class="container">
 
         <div class="d-flex flex-column flex-md-row
@@ -621,7 +717,7 @@
                      alt="LIZARI"
                      class="footer-logo">
 
-                <span class=" fw-normal fs-8 ms-2 ">
+                <span class="fw-normal fs-8 ms-2">
                     Pet
                 </span>
 
@@ -634,8 +730,8 @@
         </div>
 
     </div>
-
 </footer>
+
 
 @section Scripts {
     <script src="~/js/pet.js"
