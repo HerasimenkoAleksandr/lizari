@@ -4,6 +4,19 @@
     var product = Model.Product;
     var otherProducts = Model.OtherProducts;
 
+
+    var productImages = new[]
+    {
+        product.Picture,
+        product.AdditionalPicture1,
+        product.AdditionalPicture2,
+        product.AdditionalPicture3
+    }
+    .Where(image => !string.IsNullOrWhiteSpace(image))
+    .Select(image => image!)
+    .Distinct()
+    .ToList();
+
     ViewData["Title"] = product.Title;
 }
 
@@ -51,12 +64,93 @@
         <div class="row align-items-center g-5">
 
             <!-- Фото -->
-
             <div class="col-lg-6">
 
-                <img src="@product.Picture"
-                     class="hero-image shadow-sm"
-                     alt="@product.Title">
+                @if (productImages.Count > 0)
+                {
+                    <div id="productImageCarousel"
+                         class="carousel slide product-carousel"
+                         data-bs-ride="false"
+                         data-bs-touch="true">
+
+                        @if (productImages.Count > 1)
+                        {
+                            <div class="carousel-indicators">
+
+                                @for (int index = 0;
+                                                        index < productImages.Count;
+                                                        index++)
+                                {
+                                    <button type="button"
+                                            data-bs-target="#productImageCarousel"
+                                            data-bs-slide-to="@index"
+                                            class="@(index == 0 ? "active" : "")"
+                                            aria-current="@(index == 0 ? "true" : null)"
+                                            aria-label="Фото @(index + 1)">
+                                    </button>
+                                }
+
+                            </div>
+                        }
+
+                        <div class="carousel-inner shadow-sm">
+
+                            @for (int index = 0;
+                                                    index < productImages.Count;
+                                                    index++)
+                            {
+                                <div class="carousel-item @(index == 0 ? "active" : "")">
+
+                                    <img src="@productImages[index]"
+                                         class="hero-image d-block w-100"
+                                         alt="@product.Title — фото @(index + 1)">
+
+                                </div>
+                            }
+
+                        </div>
+
+                        @if (productImages.Count > 1)
+                        {
+                            <button class="carousel-control-prev"
+                                    type="button"
+                                    data-bs-target="#productImageCarousel"
+                                    data-bs-slide="prev">
+
+                                <span class="carousel-control-prev-icon"
+                                      aria-hidden="true">
+                                </span>
+
+                                <span class="visually-hidden">
+                                    Попереднє фото
+                                </span>
+
+                            </button>
+
+                            <button class="carousel-control-next"
+                                    type="button"
+                                    data-bs-target="#productImageCarousel"
+                                    data-bs-slide="next">
+
+                                <span class="carousel-control-next-icon"
+                                      aria-hidden="true">
+                                </span>
+
+                                <span class="visually-hidden">
+                                    Наступне фото
+                                </span>
+
+                            </button>
+                        }
+
+                    </div>
+                }
+                else
+                {
+                    <div class="alert alert-light text-center">
+                        Фото товару відсутнє
+                    </div>
+                }
 
             </div>
 
@@ -103,26 +197,28 @@
 
                 <div class="mt-4">
 
-                    @if (!string.IsNullOrWhiteSpace(product.Vendor))
-                    {
-                        <p class="mb-1">
-                            <strong>Виробник:</strong>
-                            @product.Vendor
-                        </p>
-                    }
+                   
 
                     @if (!string.IsNullOrWhiteSpace(
                                         product.VendorCode))
                     {
                         <p class="mb-1">
-                            <strong>Код товару:</strong>
+                            <strong>Артикул:</strong>
                             @product.VendorCode
                         </p>
                     }
 
+                    @if (!string.IsNullOrWhiteSpace(product.Size))
+                    {
+                        <p class="mb-1">
+                            <strong>Розмір:</strong>
+                            @product.Size
+                        </p>
+                    }
+
                     <p>
-                        <strong>Залишок:</strong>
-                        @product.QuantityInStock шт.
+                        <strong>Колір:</strong>
+                        @product.Color 
                     </p>
 
                 </div>
@@ -136,24 +232,28 @@
                         @if (product.DiscountPrice is > 0)
                         {
                             <div class="d-flex flex-wrap
-                                                align-items-center gap-3">
+                            align-items-center gap-3">
 
                                 <span class="price text-danger">
                                     @product.DiscountPrice.Value.ToString("N0") ₴
                                 </span>
 
-                                <span class="text-secondary
-                                                     text-decoration-line-through
-                                                     fs-5">
-                                    @product.Price.ToString("N0") ₴
-                                </span>
+                                <span class="old-price-wrapper">
 
-                                @if (product.DiscountPercent is > 0)
-                                {
-                                    <span class="badge bg-danger">
-                                        -@product.DiscountPercent.Value.ToString("N0")%
+                                    <span class="text-secondary
+                                     text-decoration-line-through
+                                     fs-5">
+                                        @product.Price.ToString("N0") ₴
                                     </span>
-                                }
+
+                                    @if (product.DiscountPercent is > 0)
+                                    {
+                                        <span class="discount-corner">
+                                            -@product.DiscountPercent.Value.ToString("N0")%
+                                        </span>
+                                    }
+
+                                </span>
 
                             </div>
                         }
@@ -411,7 +511,7 @@
                             @product.Size
                         </p>
                     }
-
+@* 
                     @if (!string.IsNullOrWhiteSpace(product.Color))
                     {
                         <p>
@@ -435,7 +535,7 @@
                             <strong>Артикул:</strong>
                             @product.VendorCode
                         </p>
-                    }
+                    } *@
 
                     <p>
                         <strong>Кількість:</strong>
@@ -539,15 +639,13 @@
 
                             <div class="pt-3">
 
-                                <h3 class="h6 fw-bold
-                                                   product-card-title">
+                                <h3 class="h6 fw-bold product-card-title mb-1">
                                     @item.Title
                                 </h3>
 
-                                @if (!string.IsNullOrWhiteSpace(
-                                                        item.VendorCode))
+                                @if (!string.IsNullOrWhiteSpace(item.VendorCode))
                                 {
-                                    <p class="small text-secondary mb-2">
+                                    <p class="small text-secondary mt-0 mb-2">
                                         Артикул: @item.VendorCode
                                     </p>
                                 }
@@ -599,7 +697,7 @@
 
 
 <!-- BUY -->
-@if (product.Available)
+@* @if (product.Available)
 {
     <section id="buy" class="py-5">
         <div class="container">
@@ -648,7 +746,7 @@
 
         </div>
     </section>
-}
+} *@
 
 
 <!-- DELIVERY -->
