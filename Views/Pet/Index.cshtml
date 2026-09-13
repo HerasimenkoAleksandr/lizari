@@ -289,10 +289,11 @@
 
                         </div>
 
-                        <a href="#buy"
-                           class="btn btn-dark btn-buy
-                                      rounded-pill px-5">
-                            Замовити
+                        <a asp-controller="Orders"
+                           asp-action="Create"
+                           asp-route-productId="@product.Id"
+                           class="btn btn-dark btn-buy rounded-pill px-5">
+                            Оформити замовлення
                         </a>
 
                         <p class="small-muted mt-3">

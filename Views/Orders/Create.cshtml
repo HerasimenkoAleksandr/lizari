@@ -1,0 +1,320 @@
+﻿@using System.Globalization
+@using lizari.Data.Entities
+@using lizari.Entities
+@model lizari.Models.OrderModels.OrderCreateViewModel
+
+@{
+    ViewData["Title"] = "Оформлення замовлення";
+
+    string unitPriceInvariant =
+        Model.UnitPrice.ToString(
+            CultureInfo.InvariantCulture);
+}
+
+<div class="container py-5">
+
+    <div class="row justify-content-center g-5">
+
+        <!-- ТОВАР -->
+
+        <div class="col-lg-5">
+
+            <div class="card border-0 shadow-sm">
+
+                @if (!string.IsNullOrWhiteSpace(
+                    Model.ProductPicture))
+                {
+                    <img src="@Model.ProductPicture"
+                         class="card-img-top"
+                         alt="@Model.ProductTitle">
+                }
+
+                <div class="card-body p-4">
+
+                    <h1 class="h4 fw-bold mb-3">
+                        @Model.ProductTitle
+                    </h1>
+
+                    <p class="text-secondary mb-2">
+                        Ціна за одиницю
+                    </p>
+
+                    <div class="fs-3 fw-bold">
+                        @Model.UnitPrice.ToString("N0") ₴
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- ФОРМА ЗАКАЗА -->
+
+        <div class="col-lg-7">
+
+            <div class="card border-0 shadow-sm">
+
+                <div class="card-body p-4 p-md-5">
+
+                    <h2 class="h3 fw-bold mb-4">
+                        Оформлення замовлення
+                    </h2>
+
+                    <form method="post"
+                          action="/order/create">
+
+                        @Html.AntiForgeryToken()
+
+                        <input type="hidden"
+                               asp-for="ProductId">
+
+
+                        @if (!ViewData.ModelState.IsValid)
+                        {
+                            <div asp-validation-summary="All"
+                                 class="alert alert-danger">
+                            </div>
+                        }
+
+
+                        <!-- КОНТАКТНЫЕ ДАННЫЕ -->
+
+                        <h3 class="h5 fw-bold mb-3">
+                            Контактні дані
+                        </h3>
+
+                        <div class="mb-3">
+
+                            <label asp-for="RecipientName"
+                                   class="form-label">
+                            </label>
+
+                            <input asp-for="RecipientName"
+                                   class="form-control"
+                                   autocomplete="name"
+                                   placeholder="Ім’я та прізвище">
+
+                            <span asp-validation-for="RecipientName"
+                                  class="text-danger small">
+                            </span>
+
+                        </div>
+
+                        <div class="mb-4">
+
+                            <label asp-for="RecipientPhone"
+                                   class="form-label">
+                            </label>
+
+                            <input asp-for="RecipientPhone"
+                                   class="form-control"
+                                   type="tel"
+                                   autocomplete="tel"
+                                   inputmode="tel"
+                                   placeholder="+380">
+
+                            <span asp-validation-for="RecipientPhone"
+                                  class="text-danger small">
+                            </span>
+
+                        </div>
+
+
+                        <!-- ДОСТАВКА -->
+
+                        <h3 class="h5 fw-bold mb-3">
+                            Доставка
+                        </h3>
+                        <div class="mb-3">
+
+                            <label asp-for="City"
+                                   class="form-label">
+                            </label>
+
+                            <input asp-for="City"
+                                   class="form-control"
+                                   autocomplete="address-level2"
+                                   placeholder="Наприклад: Одеса">
+
+                            <span asp-validation-for="City"
+                                  class="text-danger small">
+                            </span>
+
+                        </div>
+
+                        <div class="mb-4">
+
+                            <label asp-for="DeliveryAddress"
+                                   class="form-label">
+                            </label>
+
+                            <input asp-for="DeliveryAddress"
+                                   class="form-control"
+                                   placeholder="Наприклад: відділення №15">
+
+                            <span asp-validation-for="DeliveryAddress"
+                                  class="text-danger small">
+                            </span>
+
+                            <div class="form-text">
+                                Вкажіть номер відділення,
+                                поштомату або повну адресу доставки.
+                            </div>
+
+                        </div>
+
+
+                        <!-- КОЛИЧЕСТВО -->
+
+                        <h3 class="h5 fw-bold mb-3">
+                            Кількість
+                        </h3>
+
+                        <div class="mb-4">
+
+                            <label asp-for="Quantity"
+                                   class="form-label">
+                                Кількість товару
+                            </label>
+
+                            <input asp-for="Quantity"
+                                   class="form-control"
+                                   type="number"
+                                   min="1"
+                                   max="10">
+
+                            <span asp-validation-for="Quantity"
+                                  class="text-danger small">
+                            </span>
+
+                        </div>
+
+
+                        <!-- ОПЛАТА -->
+
+                        <h3 class="h5 fw-bold mb-3">
+                            Спосіб оплати
+                        </h3>
+
+                        <div class="mb-4">
+
+                            <div class="form-check mb-2">
+
+                                <input asp-for="PaymentMethod"
+                                       class="form-check-input"
+                                       type="radio"
+                                       value="@PaymentMethod.CashOnDelivery"
+                                       id="paymentCashOnDelivery">
+
+                                <label class="form-check-label"
+                                       for="paymentCashOnDelivery">
+                                    Накладений платіж
+                                </label>
+
+                            </div>
+
+                            <div class="form-check">
+
+                                <input asp-for="PaymentMethod"
+                                       class="form-check-input"
+                                       type="radio"
+                                       value="@PaymentMethod.FullPrepayment"
+                                       id="paymentFullPrepayment">
+
+                                <label class="form-check-label"
+                                       for="paymentFullPrepayment">
+                                    Повна передплата
+                                </label>
+
+                            </div>
+
+                            <span asp-validation-for="PaymentMethod"
+                                  class="text-danger small">
+                            </span>
+
+                        </div>
+
+
+                        <!-- КОММЕНТАРИЙ -->
+
+                        <div class="mb-4">
+
+                            <label asp-for="Comment"
+                                   class="form-label">
+                            </label>
+
+                            <textarea asp-for="Comment"
+                                      class="form-control"
+                                      rows="3"
+                                      placeholder="Необов’язково"></textarea>
+
+                            <span asp-validation-for="Comment"
+                                  class="text-danger small">
+                            </span>
+
+                        </div>
+
+
+                        <!-- ИТОГОВАЯ СУММА -->
+
+                        <div class="bg-light rounded-4 p-4 mb-4">
+
+                            <div class="d-flex
+                                        justify-content-between
+                                        align-items-center">
+
+                                <span class="fw-semibold">
+                                    Разом:
+                                </span>
+
+                                <span id="orderTotal"
+                                      class="fs-3 fw-bold"
+                                      data-unit-price="@unitPriceInvariant">
+                                    @Model.UnitPrice.ToString("N0") ₴
+                                </span>
+
+                            </div>
+
+                        </div>
+
+
+                        <!-- КНОПКИ -->
+
+                        <div class="d-flex flex-column
+                                    flex-sm-row gap-2">
+
+                            <a asp-controller="Pet"
+                               asp-action="Product"
+                               asp-route-id="@Model.ProductId"
+                               class="btn btn-outline-secondary">
+                                Повернутися
+                            </a>
+
+                            <button type="submit"
+                                    class="btn btn-dark flex-grow-1">
+                                Підтвердити замовлення
+                            </button>
+
+                        </div>
+
+                    </form>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+
+    <script src="~/js/order-create.js"
+            asp-append-version="true"></script>
+}

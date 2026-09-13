@@ -2,17 +2,29 @@ using lizari.Data;
 using lizari.Services.PetServices;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using lizari.Services.NovaPoshta;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Подключение отдельного файла с настройками базы данных
 builder.Configuration.AddJsonFile(
-    "dbsettings.json",
+    "dbsetting.json",
     optional: false,
     reloadOnChange: true);
 
 // MVC
 builder.Services.AddControllersWithViews();
+
+builder.Services.Configure<NovaPoshtaOptions>(
+    builder.Configuration.GetSection(
+        NovaPoshtaOptions.SectionName));
+
+builder.Services.AddHttpClient<
+    INovaPoshtaService,
+    NovaPoshtaService>(client =>
+    {
+        client.Timeout = TimeSpan.FromSeconds(20);
+    });
 
 // База данных
 builder.Services.AddDbContext<DataContext>(options =>
