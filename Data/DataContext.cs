@@ -17,11 +17,57 @@ public class DataContext : DbContext
 
     public DbSet<OrderItemEntity> OrderItems { get; set; } = null!;
 
+    public DbSet<PaymentDetailsEntity> PaymentDetails
+    {
+        get;
+        set;
+    } = null!;
+
 
     protected override void OnModelCreating(
         ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
+
+
+
+        modelBuilder.Entity<PaymentDetailsEntity>(entity =>
+        {
+            entity.HasKey(details => details.Id);
+
+            entity.Property(details => details.Name)
+                .HasMaxLength(100)
+                .IsRequired();
+
+            entity.Property(details => details.CardNumber)
+                .HasMaxLength(30);
+
+            entity.Property(details => details.Iban)
+                .HasMaxLength(34);
+
+            entity.Property(details => details.RecipientName)
+                .HasMaxLength(200);
+
+            entity.Property(details => details.TaxNumber)
+                .HasMaxLength(20);
+
+            entity.Property(details => details.BankName)
+                .HasMaxLength(200);
+
+            entity.Property(details => details.AdditionalInformation)
+                .HasMaxLength(500);
+        });
+
+        modelBuilder.Entity<OrderEntity>(entity =>
+        {
+            entity.HasOne(order => order.PaymentDetails)
+                .WithMany()
+                .HasForeignKey(order => order.PaymentDetailsId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            entity.Property(order => order.PaymentDetailsSnapshot)
+                .HasMaxLength(2000);
+        });
 
 
         // =========================

@@ -1,0 +1,340 @@
+﻿@using lizari.Entities
+@model IReadOnlyList<OrderEntity>
+
+@{
+    bool showArchive =
+        ViewBag.Archived is true;
+
+    ViewData["Title"] = showArchive
+        ? "Архив заказов"
+        : "Заказы";
+
+    TimeZoneInfo kyivTimeZone;
+
+    try
+    {
+        kyivTimeZone =
+            TimeZoneInfo.FindSystemTimeZoneById(
+                "Europe/Kyiv");
+    }
+    catch
+    {
+        kyivTimeZone =
+            TimeZoneInfo.FindSystemTimeZoneById(
+                "FLE Standard Time");
+    }
+}
+
+<div class="container py-4">
+
+    <!-- ЗАГОЛОВОК -->
+
+    <div class="d-flex flex-column flex-md-row
+                justify-content-between
+                align-items-md-center gap-3 mb-4">
+
+        <div>
+            <h1 class="h3 mb-1">
+                @(showArchive
+                                ? "Архив заказов"
+                                : "Заказы")
+            </h1>
+
+            <div class="text-secondary">
+                Найдено заказов: @Model.Count
+            </div>
+        </div>
+
+        <div class="d-flex flex-wrap gap-2">
+
+            <a asp-controller="AdminProducts"
+               asp-action="Index"
+               class="btn btn-outline-secondary">
+                <i class="bi bi-box-seam"></i>
+                Товары
+            </a>
+            <a asp-controller="AdminPaymentDetails"
+               asp-action="Index"
+               class="btn btn-outline-dark">
+
+                <i class="bi bi-credit-card"></i>
+                Реквізити
+
+            </a>
+
+            @if (showArchive)
+            {
+                <a asp-controller="AdminOrders"
+                   asp-action="Index"
+                   class="btn btn-dark">
+                    <i class="bi bi-list-check"></i>
+                    Активные заказы
+                </a>
+            }
+            else
+            {
+                <a asp-controller="AdminOrders"
+                   asp-action="Index"
+                   asp-route-archived="true"
+                   class="btn btn-outline-dark">
+                    <i class="bi bi-archive"></i>
+                    Архив
+                </a>
+            }
+
+        </div>
+
+    </div>
+
+
+    <!-- СООБЩЕНИЯ -->
+    @if (TempData["Success"] is not null)
+    {
+        <div class="alert alert-success">
+            @TempData["Success"]
+        </div>
+    }
+
+    @if (TempData["Error"] is not null)
+    {
+        <div class="alert alert-danger">
+            @TempData["Error"]
+        </div>
+    }
+
+
+    <!-- СПИСОК -->
+    @if (Model.Count == 0)
+    {
+        <div class="card border-0 shadow-sm">
+
+            <div class="card-body py-5 text-center">
+
+                <i class="bi bi-inbox
+                              display-4 text-secondary">
+                </i>
+
+                <h2 class="h5 mt-3">
+                    Заказов пока нет
+                </h2>
+
+            </div>
+
+        </div>
+    }
+    else
+    {
+        <div class="card border-0 shadow-sm">
+
+            <div class="table-responsive">
+
+                <table class="table
+                                  table-hover
+                                  align-middle mb-0">
+
+                    <thead class="table-light">
+
+                        <tr>
+                            <th>Заказ</th>
+                            <th>Покупатель</th>
+                            <th>Товары</th>
+                            <th>Сумма</th>
+                            <th>Оплата</th>
+                            <th>Статус</th>
+                            <th>Создан</th>
+                            <th></th>
+                        </tr>
+
+                    </thead>
+
+                    <tbody>
+
+                        @foreach (var order in Model)
+                        {
+                            string statusText =
+                            order.Status switch
+                            {
+                                OrderStatus.New =>
+                                            "Новый",
+
+                                OrderStatus.ConfirmedByCustomer =>
+                                            "Подтверждён",
+
+                                OrderStatus.SentToSupplier =>
+                                            "Отправлен поставщику",
+
+                                OrderStatus.AcceptedBySupplier =>
+                                            "Принят поставщиком",
+
+                                OrderStatus.ShippedBySupplier =>
+                                            "Отправлен покупателю",
+
+                                OrderStatus.ReceivedByCustomer =>
+                                            "Получен покупателем",
+
+                                OrderStatus.Cancelled =>
+                                            "Отменён",
+
+                                OrderStatus.Returned =>
+                                            "Возврат",
+
+                                _ =>
+                                            "Неизвестно"
+                            };
+
+                            string statusClass =
+                            order.Status switch
+                            {
+                                OrderStatus.New =>
+                                            "bg-primary",
+
+                                OrderStatus.ConfirmedByCustomer =>
+                                            "bg-info text-dark",
+
+                                OrderStatus.SentToSupplier =>
+                                            "bg-warning text-dark",
+
+                                OrderStatus.AcceptedBySupplier =>
+                                            "bg-warning text-dark",
+
+                                OrderStatus.ShippedBySupplier =>
+                                            "bg-dark",
+
+                                OrderStatus.ReceivedByCustomer =>
+                                            "bg-success",
+
+                                OrderStatus.Cancelled =>
+                                            "bg-secondary",
+
+                                OrderStatus.Returned =>
+                                            "bg-danger",
+
+                                _ =>
+                                            "bg-secondary"
+                            };
+
+                            string paymentText =
+                            order.PaymentMethod ==
+                            PaymentMethod.CashOnDelivery
+                            ? "Наложенный платёж"
+                            : "Предоплата";
+
+                            DateTime createdAtUtc =
+                            DateTime.SpecifyKind(
+                            order.CreatedAt,
+                            DateTimeKind.Utc);
+
+                            DateTime createdAtKyiv =
+                            TimeZoneInfo.ConvertTimeFromUtc(
+                            createdAtUtc,
+                            kyivTimeZone);
+
+                            <tr>
+
+                                <td>
+                                    <div class="fw-semibold">
+                                        @order.OrderNumber
+                                    </div>
+
+                                    <div class="small text-secondary">
+                                        ID: @order.Id
+                                    </div>
+                                </td>
+
+                                <td>
+                                    <div class="fw-semibold">
+                                        @order.RecipientName
+                                    </div>
+
+                                    <div class="small">
+                                        @order.RecipientPhone
+                                    </div>
+
+                                    <div class="small text-secondary">
+                                        @order.City
+                                    </div>
+                                </td>
+
+                                <td>
+                                    @foreach (var item in
+                                                                order.Items.Take(2))
+                                    {
+                                        <div class="small">
+                                            @item.ProductTitle
+                                            × @item.Quantity
+                                        </div>
+                                    }
+
+                                    @if (order.Items.Count > 2)
+                                    {
+                                        <div class="small text-secondary">
+                                            Ещё:
+                                            @(order.Items.Count - 2)
+                                        </div>
+                                    }
+                                </td>
+
+                                <td class="fw-bold text-nowrap">
+                                    @order.TotalPrice.ToString("N0") ₴
+                                </td>
+
+                                <td>
+                                    <span class="small">
+                                        @paymentText
+                                    </span>
+
+                                    @if (order.CustomerPaidAt is not null)
+                                    {
+                                        <div class="small text-success">
+                                            <i class="bi bi-check-circle"></i>
+                                            Оплачен
+                                        </div>
+                                    }
+                                </td>
+
+                                <td>
+                                    <span class="badge @statusClass">
+                                        @statusText
+                                    </span>
+                                </td>
+
+                                <td class="text-nowrap">
+                                    <div>
+                                        @createdAtKyiv.ToString(
+                                        "dd.MM.yyyy")
+                            </div>
+
+                            <div class="small text-secondary">
+                                @createdAtKyiv.ToString(
+                                                                "HH:mm")
+                            </div>
+                        </td>
+
+                        <td class="text-end">
+
+                            <a asp-controller="AdminOrders"
+                               asp-action="Details"
+                               asp-route-id="@order.Id"
+                               class="btn btn-sm
+                                              btn-outline-dark"
+                               title="Открыть заказ">
+
+                                <i class="bi bi-eye"></i>
+
+                            </a>
+
+                        </td>
+
+                    </tr>
+                                        }
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </div>
+    }
+
+</div>

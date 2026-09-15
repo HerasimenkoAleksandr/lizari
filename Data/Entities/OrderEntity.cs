@@ -1,4 +1,4 @@
-﻿using lizari.Data.Entities;
+﻿
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace lizari.Entities;
@@ -9,6 +9,15 @@ public class OrderEntity
 
     // Номер, который показываем клиенту
     public string OrderNumber { get; set; } = string.Empty;
+
+    public int? PaymentDetailsId { get; set; }
+
+    public PaymentDetailsEntity? PaymentDetails { get; set; }
+
+    public string PaymentDetailsSnapshot { get; set; } =
+        string.Empty;
+
+    public bool RequiresReturnRiskPayment { get; set; }
 
 
     // =========================
@@ -43,6 +52,8 @@ public class OrderEntity
     public OrderStatus Status { get; set; } =
         OrderStatus.New;
 
+    // Когда покупатель подтвердил заказ
+    public DateTime? ConfirmedByCustomerAt { get; set; }
 
     // =========================
     // СТОИМОСТЬ И ОПЛАТА
@@ -124,11 +135,13 @@ public class OrderEntity
     // =========================
 
     [NotMapped]
+
     public decimal CashOnDeliveryAmount
     {
         get
         {
-            if (PaymentMethod != PaymentMethod.CashOnDelivery)
+            if (PaymentMethod !=
+                lizari.Entities.PaymentMethod.CashOnDelivery)
             {
                 return 0;
             }

@@ -6,6 +6,6 @@ public class NovaPoshtaOptions
 
     public string ApiKey { get; set; } = string.Empty;
 
-    public string ApiUrl { get; set; } =
-        "https://api.novaposhta.ua/v2.0/json/";
+    //public string ApiUrl { get; set; } =
+    //    "https://api.novaposhta.ua/v2.0/json/";
 }

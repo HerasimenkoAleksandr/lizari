@@ -1,0 +1,245 @@
+﻿@using lizari.Entities
+@model lizari.Models.Admin.PaymentDetailsEditViewModel
+
+<div asp-validation-summary="ModelOnly"
+     class="alert alert-danger">
+</div>
+
+<div class="card border-0 shadow-sm mb-4">
+
+    <div class="card-body p-4">
+
+        <h2 class="h5 fw-bold mb-4">
+            Основна інформація
+        </h2>
+
+        <div class="mb-3">
+
+            <label asp-for="Name"
+                   class="form-label">
+            </label>
+
+            <input asp-for="Name"
+                   class="form-control"
+                   placeholder="Наприклад: картка ПУМБ">
+
+            <span asp-validation-for="Name"
+                  class="text-danger small">
+            </span>
+
+            <div class="form-text">
+                Цю назву бачить тільки адміністратор.
+            </div>
+
+        </div>
+
+        <div class="mb-0">
+
+            <label asp-for="Type"
+                   class="form-label">
+            </label>
+
+            <select asp-for="Type"
+                    class="form-select">
+
+                <option value="@((int)PaymentDetailsType.Card)">
+                    Банківська картка
+                </option>
+
+                <option value="@((int)PaymentDetailsType.Iban)">
+                    IBAN
+                </option>
+
+                <option value="@((int)PaymentDetailsType.FopAccount)">
+                    Рахунок ФОП
+                </option>
+
+                <option value="@((int)PaymentDetailsType.Other)">
+                    Інші реквізити
+                </option>
+
+            </select>
+
+            <span asp-validation-for="Type"
+                  class="text-danger small">
+            </span>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<div class="card border-0 shadow-sm mb-4"
+     id="cardNumberSection">
+
+    <div class="card-body p-4">
+
+        <h2 class="h5 fw-bold mb-4">
+            Банківська картка
+        </h2>
+
+        <div class="mb-0">
+
+            <label asp-for="CardNumber"
+                   class="form-label">
+            </label>
+
+            <input asp-for="CardNumber"
+                   class="form-control font-monospace"
+                   inputmode="numeric"
+                   autocomplete="off"
+                   placeholder="0000 0000 0000 0000">
+
+            <span asp-validation-for="CardNumber"
+                  class="text-danger small">
+            </span>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<div class="card border-0 shadow-sm mb-4"
+     id="ibanSection">
+
+    <div class="card-body p-4">
+
+        <h2 class="h5 fw-bold mb-4">
+            Банківський рахунок
+        </h2>
+
+        <div class="mb-0">
+
+            <label asp-for="Iban"
+                   class="form-label">
+            </label>
+
+            <input asp-for="Iban"
+                   class="form-control font-monospace"
+                   autocomplete="off"
+                   placeholder="UA000000000000000000000000000">
+
+            <span asp-validation-for="Iban"
+                  class="text-danger small">
+            </span>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<div class="card border-0 shadow-sm mb-4"
+     id="recipientSection">
+
+    <div class="card-body p-4">
+
+        <h2 class="h5 fw-bold mb-4">
+            Отримувач
+        </h2>
+
+        <div class="mb-3">
+
+            <label asp-for="RecipientName"
+                   class="form-label">
+            </label>
+
+            <input asp-for="RecipientName"
+                   class="form-control"
+                   placeholder="ПІБ або назва ФОП">
+
+            <span asp-validation-for="RecipientName"
+                  class="text-danger small">
+            </span>
+
+        </div>
+
+        <div class="mb-3">
+
+            <label asp-for="TaxNumber"
+                   class="form-label">
+            </label>
+
+            <input asp-for="TaxNumber"
+                   class="form-control"
+                   placeholder="Необов’язково">
+
+            <span asp-validation-for="TaxNumber"
+                  class="text-danger small">
+            </span>
+
+        </div>
+
+        <div class="mb-0">
+
+            <label asp-for="BankName"
+                   class="form-label">
+            </label>
+
+            <input asp-for="BankName"
+                   class="form-control"
+                   placeholder="Наприклад: ПУМБ">
+
+            <span asp-validation-for="BankName"
+                  class="text-danger small">
+            </span>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<div class="card border-0 shadow-sm mb-4">
+
+    <div class="card-body p-4">
+
+        <div class="mb-4">
+
+            <label asp-for="AdditionalInformation"
+                   class="form-label">
+            </label>
+
+            <textarea asp-for="AdditionalInformation"
+                      class="form-control"
+                      rows="4"
+                      placeholder="Призначення платежу або інша інформація">
+            </textarea>
+
+            <span asp-validation-for="AdditionalInformation"
+                  class="text-danger small">
+            </span>
+
+        </div>
+
+        <div class="form-check form-switch mb-3">
+
+            <input asp-for="IsActive"
+                   class="form-check-input">
+
+            <label asp-for="IsActive"
+                   class="form-check-label fw-semibold">
+            </label>
+
+        </div>
+
+        <div class="form-check form-switch">
+
+            <input asp-for="IsDefault"
+                   class="form-check-input">
+
+            <label asp-for="IsDefault"
+                   class="form-check-label fw-semibold">
+            </label>
+
+        </div>
+
+    </div>
+
+</div>

@@ -1,5 +1,4 @@
 ﻿using lizari.Data;
-using lizari.Data.Entities;
 using lizari.Entities;
 using lizari.Models.OrderModels;
 using Microsoft.AspNetCore.Mvc;

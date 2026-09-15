@@ -6,6 +6,9 @@ namespace lizari.Services.NovaPoshta;
 
 public class NovaPoshtaService : INovaPoshtaService
 {
+
+    private const string ApiUrl =
+        "https://api.novaposhta.ua/v2.0/json/";
     private readonly HttpClient _httpClient;
     private readonly NovaPoshtaOptions _options;
     private readonly ILogger<NovaPoshtaService> _logger;
@@ -19,7 +22,6 @@ public class NovaPoshtaService : INovaPoshtaService
         _options = options.Value;
         _logger = logger;
     }
-
     public async Task<IReadOnlyList<NovaPoshtaCity>>
         SearchCitiesAsync(
             string searchText,
@@ -37,12 +39,14 @@ public class NovaPoshtaService : INovaPoshtaService
             apiKey = _options.ApiKey,
             modelName = "Address",
             calledMethod = "getCities",
-            methodProperties = new
-            {
-                FindByString = searchText,
-                Limit = "20",
-                Page = "1"
-            }
+
+            methodProperties =
+                new Dictionary<string, string>
+                {
+                    ["FindByString"] = searchText,
+                    ["Limit"] = "20",
+                    ["Page"] = "1"
+                }
         };
 
         var response =
@@ -54,10 +58,10 @@ public class NovaPoshtaService : INovaPoshtaService
     }
 
     public async Task<IReadOnlyList<NovaPoshtaWarehouse>>
-        GetWarehousesAsync(
-            string cityRef,
-            string? searchText = null,
-            CancellationToken cancellationToken = default)
+     GetWarehousesAsync(
+         string cityRef,
+         string? searchText = null,
+         CancellationToken cancellationToken = default)
     {
         cityRef = cityRef?.Trim() ?? string.Empty;
         searchText = searchText?.Trim();
@@ -72,13 +76,16 @@ public class NovaPoshtaService : INovaPoshtaService
             apiKey = _options.ApiKey,
             modelName = "AddressGeneral",
             calledMethod = "getWarehouses",
-            methodProperties = new
-            {
-                CityRef = cityRef,
-                FindByString = searchText ?? string.Empty,
-                Limit = "100",
-                Page = "1"
-            }
+
+            methodProperties =
+                new Dictionary<string, string>
+                {
+                    ["CityRef"] = cityRef,
+                    ["FindByString"] =
+                        searchText ?? string.Empty,
+                    ["Limit"] = "100",
+                    ["Page"] = "1"
+                }
         };
 
         var response =
@@ -101,10 +108,10 @@ public class NovaPoshtaService : INovaPoshtaService
         }
 
         using var httpResponse =
-            await _httpClient.PostAsJsonAsync(
-                _options.ApiUrl,
-                request,
-                cancellationToken);
+        await _httpClient.PostAsJsonAsync(
+    ApiUrl,
+    request,
+    cancellationToken);
 
         httpResponse.EnsureSuccessStatusCode();
 

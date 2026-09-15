@@ -1,0 +1,1094 @@
+﻿@using System.Text
+@using lizari.Entities
+@model lizari.Models.Admin.AdminOrderEditViewModel
+
+@{
+    var order = Model.Order;
+
+    ViewData["Title"] = $"Заказ {order.OrderNumber}";
+
+    TimeZoneInfo kyivTimeZone;
+
+    try
+    {
+        kyivTimeZone = TimeZoneInfo.FindSystemTimeZoneById(
+            "Europe/Kyiv");
+    }
+    catch (TimeZoneNotFoundException)
+    {
+        kyivTimeZone = TimeZoneInfo.FindSystemTimeZoneById(
+            "FLE Standard Time");
+    }
+
+    DateTime createdAtUtc = DateTime.SpecifyKind(
+        order.CreatedAt,
+        DateTimeKind.Utc);
+
+    DateTime createdAtKyiv =
+        TimeZoneInfo.ConvertTimeFromUtc(
+            createdAtUtc,
+            kyivTimeZone);
+
+    // Сообщения строятся по СОХРАНЁННЫМ данным заказа.
+    // После изменения формы сначала нажмите «Сохранить заказ».
+
+    bool isCashOnDelivery =
+        order.PaymentMethod ==
+        PaymentMethod.CashOnDelivery;
+
+    bool requiresRiskPayment =
+        isCashOnDelivery &&
+        order.RequiresReturnRiskPayment;
+
+    bool hasPaymentDetails =
+        !string.IsNullOrWhiteSpace(
+            order.PaymentDetailsSnapshot);
+
+    decimal riskPayment =
+        requiresRiskPayment
+            ? order.ReturnRiskPaymentAmount
+            : 0;
+
+    decimal cashOnDeliveryAmount =
+        Math.Max(
+            0,
+            order.TotalPrice - riskPayment);
+
+    bool needsPaymentMessage =
+        !isCashOnDelivery ||
+        requiresRiskPayment;
+
+    bool canCopyPaymentMessage =
+        needsPaymentMessage &&
+        hasPaymentDetails &&
+        (!requiresRiskPayment || riskPayment > 0);
+
+    bool hasTrackingNumber =
+        !string.IsNullOrWhiteSpace(
+            order.TrackingNumber);
+
+    string paymentMethodText =
+        isCashOnDelivery
+            ? "Накладений платіж"
+            : "Повна передплата";
+
+    // =========================
+    // 1. ПОДТВЕРЖДЕНИЕ ЗАКАЗА
+    // =========================
+
+    var confirmationBuilder = new StringBuilder();
+
+    confirmationBuilder.AppendLine(
+        $"Вітаємо, {order.RecipientName}!");
+
+    confirmationBuilder.AppendLine();
+
+    confirmationBuilder.AppendLine(
+        $"Ваше замовлення №{order.OrderNumber} підтверджено.");
+
+    confirmationBuilder.AppendLine();
+    confirmationBuilder.AppendLine("Замовлення:");
+
+    foreach (var item in order.Items)
+    {
+        confirmationBuilder.AppendLine(
+            $"• {item.ProductTitle} — " +
+            $"{item.Quantity} шт. × " +
+            $"{item.UnitPrice:N0} грн = " +
+            $"{item.TotalPrice:N0} грн");
+    }
+
+    confirmationBuilder.AppendLine();
+
+    confirmationBuilder.AppendLine(
+        $"Разом: {order.TotalPrice:N0} грн");
+
+    confirmationBuilder.AppendLine(
+        $"Оплата: {paymentMethodText}");
+
+    confirmationBuilder.AppendLine(
+        $"Місто: {order.City}");
+
+    confirmationBuilder.AppendLine(
+        $"Доставка: {order.DeliveryAddress}");
+
+    confirmationBuilder.AppendLine();
+    confirmationBuilder.AppendLine(
+        "Дякуємо за замовлення!");
+
+    confirmationBuilder.Append("LIZARI Pet");
+
+    string confirmationMessage =
+        confirmationBuilder.ToString();
+
+    // =========================
+    // 2. СООБЩЕНИЕ ДЛЯ ОПЛАТЫ
+    // =========================
+
+    var paymentBuilder = new StringBuilder();
+
+    if (!needsPaymentMessage)
+    {
+        paymentBuilder.Append(
+            "Накладений платіж без передплати. " +
+            "Повідомлення з реквізитами не потрібне.");
+    }
+    else if (!hasPaymentDetails)
+    {
+        paymentBuilder.Append(
+            "Оберіть реквізити та збережіть замовлення.");
+    }
+    else if (requiresRiskPayment && riskPayment <= 0)
+    {
+        paymentBuilder.Append(
+            "Укажіть суму передплати ризику та " +
+            "збережіть замовлення.");
+    }
+    else
+    {
+        paymentBuilder.AppendLine(
+            $"Вітаємо, {order.RecipientName}!");
+
+        paymentBuilder.AppendLine();
+
+        if (requiresRiskPayment)
+        {
+            paymentBuilder.AppendLine(
+                $"Для підтвердження замовлення " +
+                $"№{order.OrderNumber} просимо внести " +
+                $"передплату {riskPayment:N0} грн.");
+
+            paymentBuilder.AppendLine();
+
+            paymentBuilder.AppendLine(
+                "Передплата враховується у " +
+                "загальній вартості замовлення.");
+
+            paymentBuilder.AppendLine();
+
+            paymentBuilder.AppendLine(
+                $"Вартість замовлення: " +
+                $"{order.TotalPrice:N0} грн");
+
+            paymentBuilder.AppendLine(
+                $"Передплата: {riskPayment:N0} грн");
+
+            paymentBuilder.AppendLine(
+                $"Залишок при отриманні: " +
+                $"{cashOnDeliveryAmount:N0} грн");
+        }
+        else
+        {
+            paymentBuilder.AppendLine(
+                $"Для оплати замовлення " +
+                $"№{order.OrderNumber}:");
+
+            paymentBuilder.AppendLine();
+
+            paymentBuilder.AppendLine(
+                $"Сума до сплати: " +
+                $"{order.TotalPrice:N0} грн");
+        }
+
+        paymentBuilder.AppendLine();
+
+        paymentBuilder.AppendLine("Реквізити:");
+        paymentBuilder.AppendLine(
+            order.PaymentDetailsSnapshot);
+
+        paymentBuilder.AppendLine();
+
+        paymentBuilder.AppendLine(
+            $"Призначення платежу: оплата " +
+            $"замовлення {order.OrderNumber}");
+
+        paymentBuilder.AppendLine();
+
+        paymentBuilder.AppendLine(
+            "Після оплати, будь ласка, повідомте нам.");
+
+        paymentBuilder.AppendLine();
+        paymentBuilder.Append("LIZARI Pet");
+    }
+
+    string paymentMessage =
+        paymentBuilder.ToString();
+
+    // =========================
+    // 3. СООБЩЕНИЕ С ТТН
+    // =========================
+
+    var shippingBuilder = new StringBuilder();
+
+    if (!hasTrackingNumber)
+    {
+        shippingBuilder.Append(
+            "Укажіть номер ТТН та збережіть замовлення.");
+    }
+    else
+    {
+        shippingBuilder.AppendLine(
+            $"Вітаємо, {order.RecipientName}!");
+
+        shippingBuilder.AppendLine();
+
+        shippingBuilder.AppendLine(
+            $"Ваше замовлення №{order.OrderNumber} " +
+            "відправлено Новою Поштою.");
+
+        shippingBuilder.AppendLine();
+
+        shippingBuilder.AppendLine(
+            $"Номер ТТН: {order.TrackingNumber}");
+
+        shippingBuilder.AppendLine();
+
+        shippingBuilder.AppendLine(
+            "Відстежити відправлення:");
+
+        shippingBuilder.AppendLine(
+            "https://novaposhta.ua/tracking/?" +
+            $"cargo_number={order.TrackingNumber}");
+
+        if (isCashOnDelivery)
+        {
+            shippingBuilder.AppendLine();
+
+            shippingBuilder.AppendLine(
+                $"До сплати при отриманні: " +
+                $"{cashOnDeliveryAmount:N0} грн");
+        }
+
+        shippingBuilder.AppendLine();
+
+        shippingBuilder.AppendLine(
+            "Дякуємо за замовлення!");
+
+        shippingBuilder.Append("LIZARI Pet");
+    }
+
+    string shippingMessage =
+        shippingBuilder.ToString();
+}
+
+<div class="container py-4">
+
+    <div class="d-flex flex-column flex-md-row
+                justify-content-between align-items-md-center
+                gap-3 mb-4">
+
+        <div>
+            <a asp-controller="AdminOrders"
+               asp-action="Index"
+               asp-route-archived="@order.IsArchived"
+               class="text-decoration-none">
+
+                <i class="bi bi-arrow-left"></i>
+                Назад к заказам
+
+            </a>
+
+            <h1 class="h3 mt-2 mb-1">
+                Заказ @order.OrderNumber
+            </h1>
+
+            <div class="text-secondary">
+                @createdAtKyiv.ToString("dd.MM.yyyy HH:mm")
+            </div>
+        </div>
+
+        <span class="badge bg-primary fs-6">
+            @order.Status
+        </span>
+    </div>
+
+    @if (TempData["Success"] is not null)
+    {
+        <div class="alert alert-success">
+            @TempData["Success"]
+        </div>
+    }
+
+    @if (TempData["Error"] is not null)
+    {
+        <div class="alert alert-danger">
+            @TempData["Error"]
+        </div>
+    }
+
+    <form method="post"
+          action="/admin/orders/@Model.Id/update">
+
+        @Html.AntiForgeryToken()
+
+        <input asp-for="Id"
+               type="hidden">
+
+        @if (!ViewData.ModelState.IsValid)
+        {
+            <div asp-validation-summary="All"
+                 class="alert alert-danger">
+            </div>
+        }
+
+        <div class="row g-4">
+
+            <!-- ЛЕВАЯ КОЛОНКА -->
+
+            <div class="col-lg-7">
+
+                <!-- ПОКУПАТЕЛЬ -->
+
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-body p-4">
+
+                        <h2 class="h5 fw-bold mb-4">
+                            <i class="bi bi-person"></i>
+                            Покупатель
+                        </h2>
+
+                        <div class="row g-3">
+
+                            <div class="col-md-6">
+                                <div class="small text-secondary">
+                                    Получатель
+                                </div>
+
+                                <div class="fw-semibold">
+                                    @order.RecipientName
+                                </div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <div class="small text-secondary">
+                                    Телефон
+                                </div>
+
+                                <a href="tel:@order.RecipientPhone"
+                                   class="text-dark">
+                                    @order.RecipientPhone
+                                </a>
+                            </div>
+
+                            <div class="col-md-6">
+                                <div class="small text-secondary">
+                                    Город
+                                </div>
+
+                                <div class="fw-semibold">
+                                    @order.City
+                                </div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <div class="small text-secondary">
+                                    Отделение или адрес
+                                </div>
+
+                                <div class="fw-semibold">
+                                    @order.DeliveryAddress
+                                </div>
+                            </div>
+
+                            @if (!string.IsNullOrWhiteSpace(
+                                                        order.Comment))
+                            {
+                                <div class="col-12">
+                                    <div class="small text-secondary">
+                                        Комментарий
+                                    </div>
+
+                                    <div>
+                                        @order.Comment
+                                    </div>
+                                </div>
+                            }
+
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ПОЗИЦИИ ЗАКАЗА -->
+
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-body p-4">
+
+                        <h2 class="h5 fw-bold mb-4">
+                            <i class="bi bi-box-seam"></i>
+                            Позиции заказа
+                        </h2>
+
+                        @foreach (var item in order.Items)
+                        {
+                            <div class="border rounded-3 p-3 mb-3">
+
+                                <div class="fw-bold mb-2">
+                                    @item.ProductTitle
+                                </div>
+
+                                <div class="row g-2 small">
+
+                                    <div class="col-md-6">
+                                        <span class="text-secondary">
+                                            ID LIZARI:
+                                        </span>
+                                        @item.ProductId
+                                    </div>
+
+                                    <div class="col-md-6">
+                                        <span class="text-secondary">
+                                            ID поставщика:
+                                        </span>
+                                        @item.SupplierProductId
+                                    </div>
+
+                                    <div class="col-md-6">
+                                        <span class="text-secondary">
+                                            Артикул:
+                                        </span>
+                                        @item.VendorCode
+                                    </div>
+
+                                    <div class="col-md-6">
+                                        <span class="text-secondary">
+                                            Количество:
+                                        </span>
+                                        @item.Quantity
+                                    </div>
+
+                                    <div class="col-md-6">
+                                        <span class="text-secondary">
+                                            Цена:
+                                        </span>
+                                        @item.UnitPrice.ToString("N0") ₴
+                                    </div>
+
+                                    <div class="col-md-6">
+                                        <span class="text-secondary">
+                                            Сумма:
+                                        </span>
+                                        <strong>
+                                            @item.TotalPrice.ToString("N0") ₴
+                                        </strong>
+                                    </div>
+
+                                </div>
+                            </div>
+                        }
+
+                        <div class="d-flex justify-content-between
+                                    align-items-center pt-2">
+
+                            <span class="fw-semibold">
+                                Общая сумма
+                            </span>
+
+                            <span class="fs-3 fw-bold">
+                                @order.TotalPrice.ToString("N0") ₴
+                            </span>
+                        </div>
+
+                    </div>
+                </div>
+
+                <!-- СООБЩЕНИЕ №1 -->
+
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-body p-4">
+
+                        <div class="d-flex flex-column flex-sm-row
+                                    justify-content-between
+                                    align-items-sm-center gap-3 mb-3">
+
+                            <div>
+                                <h2 class="h5 fw-bold mb-1">
+                                    <i class="bi bi-chat-left-text"></i>
+                                    1. Підтвердження замовлення
+                                </h2>
+
+                                <div class="small text-secondary">
+                                    Після розмови з покупцем
+                                </div>
+                            </div>
+
+                            <button type="button"
+                                    class="btn btn-outline-success
+                                           copy-message-button"
+                                    data-copy-target="confirmationMessage">
+
+                                <i class="bi bi-clipboard"></i>
+                                Скопіювати
+
+                            </button>
+
+                        </div>
+
+                        <textarea id="confirmationMessage"
+                                  class="form-control bg-light"
+                                  rows="14"
+                                  readonly>@confirmationMessage</textarea>
+
+                    </div>
+                </div>
+
+                <!-- СООБЩЕНИЕ №2 -->
+
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-body p-4">
+
+                        <div class="d-flex flex-column flex-sm-row
+                                    justify-content-between
+                                    align-items-sm-center gap-3 mb-3">
+
+                            <div>
+                                <h2 class="h5 fw-bold mb-1">
+                                    <i class="bi bi-credit-card"></i>
+                                    2. Повідомлення для оплати
+                                </h2>
+
+                                <div class="small text-secondary">
+
+                                    @if (!isCashOnDelivery)
+                                    {
+                                        <span>
+                                            Повна передплата
+                                        </span>
+                                    }
+                                    else if (requiresRiskPayment)
+                                    {
+                                        <span>
+                                            Передплата ризику
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span>
+                                            Оплата при отриманні
+                                        </span>
+                                    }
+
+                                </div>
+                            </div>
+
+                            <button type="button"
+                                    class="btn btn-outline-success
+                                           copy-message-button"
+                                    data-copy-target="paymentMessage"
+                                    disabled="@(!canCopyPaymentMessage)">
+
+                                <i class="bi bi-clipboard"></i>
+                                Скопіювати
+
+                            </button>
+
+                        </div>
+
+                        @if (!needsPaymentMessage)
+                        {
+                            <div class="alert alert-info py-2">
+                                Накладений платіж без передплати:
+                                реквізити надсилати не потрібно.
+                            </div>
+                        }
+                        else if (!hasPaymentDetails)
+                        {
+                            <div class="alert alert-warning py-2">
+                                Оберіть реквізити та збережіть замовлення.
+                            </div>
+                        }
+                        else if (requiresRiskPayment &&
+                        riskPayment <= 0)
+                        {
+                            <div class="alert alert-warning py-2">
+                                Укажіть суму передплати ризику
+                                та збережіть замовлення.
+                            </div>
+                        }
+
+                        <textarea id="paymentMessage"
+                                  class="form-control bg-light"
+                                  rows="18"
+                                  readonly>@paymentMessage</textarea>
+
+                    </div>
+                </div>
+
+                <!-- СООБЩЕНИЕ №3 -->
+
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-body p-4">
+
+                        <div class="d-flex flex-column flex-sm-row
+                                    justify-content-between
+                                    align-items-sm-center gap-3 mb-3">
+
+                            <div>
+                                <h2 class="h5 fw-bold mb-1">
+                                    <i class="bi bi-truck"></i>
+                                    3. Повідомлення про відправлення
+                                </h2>
+
+                                <div class="small text-secondary">
+                                    Після отримання ТТН
+                                </div>
+                            </div>
+
+                            <button type="button"
+                                    class="btn btn-outline-success
+                                           copy-message-button"
+                                    data-copy-target="shippingMessage"
+                                    disabled="@(!hasTrackingNumber)">
+
+                                <i class="bi bi-clipboard"></i>
+                                Скопіювати
+
+                            </button>
+
+                        </div>
+
+                        @if (!hasTrackingNumber)
+                        {
+                            <div class="alert alert-warning py-2">
+                                Укажіть номер ТТН і збережіть замовлення.
+                            </div>
+                        }
+
+                        <textarea id="shippingMessage"
+                                  class="form-control bg-light"
+                                  rows="15"
+                                  readonly>@shippingMessage</textarea>
+
+                    </div>
+                </div>
+
+                <!-- РАБОТА С ПОСТАВЩИКОМ -->
+
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-body p-4">
+
+                        <h2 class="h5 fw-bold mb-4">
+                            <i class="bi bi-truck"></i>
+                            Работа с поставщиком
+                        </h2>
+
+                        <div class="form-check form-switch mb-3">
+                            <input asp-for="ConfirmedByCustomer"
+                                   class="form-check-input">
+
+                            <label asp-for="ConfirmedByCustomer"
+                                   class="form-check-label fw-semibold">
+                            </label>
+                        </div>
+
+                        <div class="form-check form-switch mb-3">
+                            <input asp-for="SentToSupplier"
+                                   class="form-check-input">
+
+                            <label asp-for="SentToSupplier"
+                                   class="form-check-label fw-semibold">
+                            </label>
+                        </div>
+
+                        <div class="form-check form-switch mb-3">
+                            <input asp-for="AcceptedBySupplier"
+                                   class="form-check-input">
+
+                            <label asp-for="AcceptedBySupplier"
+                                   class="form-check-label fw-semibold">
+                            </label>
+                        </div>
+
+                        <hr>
+
+                        <div class="row align-items-end g-3">
+
+                            <div class="col-md-6">
+                                <div class="form-check form-switch mb-2">
+                                    <input asp-for="SupplierPaid"
+                                           class="form-check-input">
+
+                                    <label asp-for="SupplierPaid"
+                                           class="form-check-label fw-semibold">
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label asp-for="SupplierPaymentAmount"
+                                       class="form-label">
+                                </label>
+
+                                <div class="input-group">
+                                    <input asp-for="SupplierPaymentAmount"
+                                           class="form-control">
+
+                                    <span class="input-group-text">
+                                        ₴
+                                    </span>
+                                </div>
+
+                                <span asp-validation-for="SupplierPaymentAmount"
+                                      class="text-danger small">
+                                </span>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ОТПРАВКА -->
+
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-body p-4">
+
+                        <h2 class="h5 fw-bold mb-4">
+                            <i class="bi bi-send"></i>
+                            Отправка
+                        </h2>
+
+                        <div class="form-check form-switch mb-3">
+                            <input asp-for="ShippedBySupplier"
+                                   class="form-check-input">
+
+                            <label asp-for="ShippedBySupplier"
+                                   class="form-check-label fw-semibold">
+                            </label>
+                        </div>
+
+                        <label asp-for="TrackingNumber"
+                               class="form-label">
+                        </label>
+
+                        <input asp-for="TrackingNumber"
+                               class="form-control"
+                               placeholder="Номер ТТН">
+
+                        <span asp-validation-for="TrackingNumber"
+                              class="text-danger small">
+                        </span>
+
+                        <div class="form-text">
+                            После ввода ТТН сохраните заказ.
+                        </div>
+
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- ПРАВАЯ КОЛОНКА -->
+
+            <div class="col-lg-5">
+
+                <!-- СПОСОБ ОПЛАТЫ И РЕКВИЗИТЫ -->
+
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-body p-4">
+
+                        <h2 class="h5 fw-bold mb-3">
+                            Способ оплаты
+                        </h2>
+
+                        <label asp-for="PaymentMethod"
+                               class="form-label fw-semibold">
+                        </label>
+
+                        <select asp-for="PaymentMethod"
+                                class="form-select">
+
+                            <option value="@((int)PaymentMethod.CashOnDelivery)">
+                                Накладений платіж
+                            </option>
+
+                            <option value="@((int)PaymentMethod.FullPrepayment)">
+                                Повна передплата
+                            </option>
+
+                        </select>
+
+                        <span asp-validation-for="PaymentMethod"
+                              class="text-danger small">
+                        </span>
+
+                        <div class="form-text mb-4">
+                            После разговора с покупателем можно
+                            изменить способ оплаты. Сохраните заказ,
+                            чтобы обновились сообщения.
+                        </div>
+
+                        <label asp-for="PaymentDetailsId"
+                               class="form-label fw-semibold">
+                        </label>
+
+                        <select asp-for="PaymentDetailsId"
+                                asp-items="Model.PaymentDetailsOptions"
+                                class="form-select">
+
+                            <option value="">
+                                Не выбрано
+                            </option>
+
+                        </select>
+
+                        <span asp-validation-for="PaymentDetailsId"
+                              class="text-danger small">
+                        </span>
+
+                        <div class="form-text">
+                            Выберите карту или счёт и сохраните заказ.
+                        </div>
+
+                        <a asp-controller="AdminPaymentDetails"
+                           asp-action="Index"
+                           class="btn btn-sm btn-outline-secondary mt-3">
+
+                            <i class="bi bi-credit-card"></i>
+                            Управление реквизитами
+
+                        </a>
+
+                        @if (hasPaymentDetails)
+                        {
+                            <div class="bg-light rounded-3 p-3 mt-3">
+
+                                <div class="small text-secondary mb-2">
+                                    Сохранённые реквизиты
+                                </div>
+
+                                <pre class="small mb-0
+                                                text-break">@order.PaymentDetailsSnapshot</pre>
+
+                            </div>
+                        }
+
+                    </div>
+                </div>
+
+                <!-- ПРЕДОПЛАТА РИСКА -->
+                @if (isCashOnDelivery)
+                {
+                    <div class="card border-0 shadow-sm mb-4">
+                        <div class="card-body p-4">
+
+                            <h2 class="h5 fw-bold mb-4">
+                                Предоплата риска
+                            </h2>
+
+                            <div class="form-check form-switch mb-3">
+                                <input asp-for="RequiresReturnRiskPayment"
+                                       class="form-check-input">
+
+                                <label asp-for="RequiresReturnRiskPayment"
+                                       class="form-check-label fw-semibold">
+                                </label>
+                            </div>
+
+                            <label asp-for="ReturnRiskPaymentAmount"
+                                   class="form-label">
+                            </label>
+
+                            <div class="input-group mb-3">
+                                <input asp-for="ReturnRiskPaymentAmount"
+                                       class="form-control">
+
+                                <span class="input-group-text">
+                                    ₴
+                                </span>
+                            </div>
+
+                            <span asp-validation-for="ReturnRiskPaymentAmount"
+                                  class="text-danger small">
+                            </span>
+
+                            <div class="form-check form-switch mt-3">
+                                <input asp-for="ReturnRiskPaid"
+                                       class="form-check-input">
+
+                                <label asp-for="ReturnRiskPaid"
+                                       class="form-check-label fw-semibold">
+                                </label>
+                            </div>
+
+                            <div class="form-text">
+                                «Получена» отмечайте только после
+                                фактического поступления денег.
+                            </div>
+
+                            @if (requiresRiskPayment)
+                            {
+                                <div class="small text-secondary mt-3">
+                                    Остаток при получении:
+                                    <strong>
+                                        @cashOnDeliveryAmount.ToString("N0") ₴
+                                    </strong>
+                                </div>
+                            }
+
+                        </div>
+                    </div>
+                }
+
+                <!-- ОПЛАТА ПОКУПАТЕЛЕМ -->
+
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-body p-4">
+
+                        <h2 class="h5 fw-bold mb-4">
+                            Оплата покупателем
+                        </h2>
+
+                        <div class="form-check form-switch mb-3">
+                            <input asp-for="CustomerPaid"
+                                   class="form-check-input">
+
+                            <label asp-for="CustomerPaid"
+                                   class="form-check-label fw-semibold">
+                            </label>
+                        </div>
+
+                        <label asp-for="CustomerPaidAmount"
+                               class="form-label">
+                        </label>
+
+                        <div class="input-group">
+                            <input asp-for="CustomerPaidAmount"
+                                   class="form-control">
+
+                            <span class="input-group-text">
+                                ₴
+                            </span>
+                        </div>
+
+                        <span asp-validation-for="CustomerPaidAmount"
+                              class="text-danger small">
+                        </span>
+
+                    </div>
+                </div>
+
+                <!-- ПОСТУПЛЕНИЕ ДЕНЕГ -->
+
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-body p-4">
+
+                        <h2 class="h5 fw-bold mb-4">
+                            Поступление денег
+                        </h2>
+
+                        <div class="form-check form-switch mb-3">
+                            <input asp-for="PaymentReceived"
+                                   class="form-check-input">
+
+                            <label asp-for="PaymentReceived"
+                                   class="form-check-label fw-semibold">
+                            </label>
+                        </div>
+
+                        <label asp-for="ReceivedPaymentAmount"
+                               class="form-label">
+                        </label>
+
+                        <div class="input-group">
+                            <input asp-for="ReceivedPaymentAmount"
+                                   class="form-control">
+
+                            <span class="input-group-text">
+                                ₴
+                            </span>
+                        </div>
+
+                        <span asp-validation-for="ReceivedPaymentAmount"
+                              class="text-danger small">
+                        </span>
+
+                    </div>
+                </div>
+
+                <!-- ЗАВЕРШЕНИЕ -->
+
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-body p-4">
+
+                        <h2 class="h5 fw-bold mb-4">
+                            Завершение заказа
+                        </h2>
+
+                        <div class="mb-4">
+                            <label asp-for="Status"
+                                   class="form-label fw-semibold">
+                                Особый статус
+                            </label>
+
+                            <select asp-for="Status"
+                                    class="form-select">
+
+                                <option value="@((int)OrderStatus.New)">
+                                    Обычный заказ
+                                </option>
+
+                                <option value="@((int)OrderStatus.Cancelled)">
+                                    Отменён
+                                </option>
+
+                                <option value="@((int)OrderStatus.Returned)">
+                                    Возврат
+                                </option>
+
+                            </select>
+                        </div>
+
+                        <div class="form-check form-switch mb-3">
+                            <input asp-for="ReceivedByCustomer"
+                                   class="form-check-input">
+
+                            <label asp-for="ReceivedByCustomer"
+                                   class="form-check-label fw-semibold">
+                            </label>
+                        </div>
+
+                        <div class="form-check form-switch">
+                            <input asp-for="IsArchived"
+                                   class="form-check-input">
+
+                            <label asp-for="IsArchived"
+                                   class="form-check-label fw-semibold">
+                            </label>
+                        </div>
+
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <div class="d-flex flex-column flex-sm-row
+                    justify-content-end gap-2 mt-4">
+
+            <a asp-controller="AdminOrders"
+               asp-action="Index"
+               asp-route-archived="@order.IsArchived"
+               class="btn btn-outline-secondary">
+
+                Отмена
+
+            </a>
+
+            <button type="submit"
+                    class="btn btn-success px-5">
+
+                <i class="bi bi-check-lg"></i>
+                Сохранить заказ
+
+            </button>
+
+        </div>
+
+    </form>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+
+    <script src="~/js/admin-order-details.js"
+            asp-append-version="true"></script>
+}

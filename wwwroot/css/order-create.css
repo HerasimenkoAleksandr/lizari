@@ -1,0 +1,18 @@
+﻿.np-suggestions {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    z-index: 1050;
+    max-height: 280px;
+    overflow-y: auto;
+    border-radius: 0 0 10px 10px;
+}
+
+    .np-suggestions .list-group-item {
+        cursor: pointer;
+    }
+
+        .np-suggestions .list-group-item:hover {
+            background-color: #f2f1ec;
+        }

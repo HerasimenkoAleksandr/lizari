@@ -1,8 +1,7 @@
-﻿namespace lizari.Data.Entities
+﻿namespace lizari.Entities;
+
+public enum PaymentMethod
 {
-    public enum PaymentMethod
-    {
-        FullPrepayment = 1,
-        CashOnDelivery = 2
-    }
+    FullPrepayment = 1,
+    CashOnDelivery = 2
 }

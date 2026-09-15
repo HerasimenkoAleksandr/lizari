@@ -1,0 +1,298 @@
+﻿@using lizari.Entities
+@model IReadOnlyList<PaymentDetailsEntity>
+
+@{
+    ViewData["Title"] = "Платіжні реквізити";
+}
+
+<div class="container py-4">
+
+    <div class="d-flex flex-column flex-md-row
+                justify-content-between
+                align-items-md-center gap-3 mb-4">
+
+        <div>
+            <a asp-controller="AdminOrders"
+               asp-action="Index"
+               class="text-decoration-none text-secondary">
+
+                <i class="bi bi-arrow-left"></i>
+                Назад до замовлень
+
+            </a>
+
+            <h1 class="h3 fw-bold mt-2 mb-0">
+                Платіжні реквізити
+            </h1>
+        </div>
+
+        <a asp-controller="AdminPaymentDetails"
+           asp-action="Create"
+           class="btn btn-dark">
+
+            <i class="bi bi-plus-lg"></i>
+            Додати реквізити
+
+        </a>
+
+    </div>
+
+    @if (TempData["Success"] is not null)
+    {
+        <div class="alert alert-success">
+            @TempData["Success"]
+        </div>
+    }
+
+    @if (TempData["Error"] is not null)
+    {
+        <div class="alert alert-danger">
+            @TempData["Error"]
+        </div>
+    }
+
+    @if (Model.Count == 0)
+    {
+        <div class="card border-0 shadow-sm">
+
+            <div class="card-body p-5 text-center">
+
+                <div class="display-5 text-secondary mb-3">
+                    <i class="bi bi-credit-card"></i>
+                </div>
+
+                <h2 class="h4 fw-bold">
+                    Реквізитів поки немає
+                </h2>
+
+                <p class="text-secondary">
+                    Додайте картку або рахунок ФОП.
+                </p>
+
+                <a asp-controller="AdminPaymentDetails"
+                   asp-action="Create"
+                   class="btn btn-dark">
+
+                    Додати реквізити
+
+                </a>
+
+            </div>
+
+        </div>
+    }
+    else
+    {
+        <div class="row g-4">
+
+            @foreach (var item in Model)
+            {
+                string typeName = item.Type switch
+                {
+                    PaymentDetailsType.Card =>
+                    "Банківська картка",
+
+                    PaymentDetailsType.Iban =>
+                    "IBAN",
+
+                    PaymentDetailsType.FopAccount =>
+                    "Рахунок ФОП",
+
+                    PaymentDetailsType.Other =>
+                    "Інші реквізити",
+
+                    _ => "Не вказано"
+                };
+
+                <div class="col-lg-6">
+
+                    <div class="card border-0 shadow-sm h-100">
+
+                        <div class="card-body p-4">
+
+                            <div class="d-flex
+                                                justify-content-between
+                                                align-items-start gap-3 mb-3">
+
+                                <div>
+                                    <h2 class="h5 fw-bold mb-1">
+                                        @item.Name
+                                    </h2>
+
+                                    <div class="text-secondary">
+                                        @typeName
+                                    </div>
+                                </div>
+
+                                <div class="d-flex flex-column
+                                                    align-items-end gap-2">
+
+                                    @if (item.IsDefault)
+                                    {
+                                        <span class="badge bg-success">
+                                            Основні
+                                        </span>
+                                    }
+
+                                    @if (item.IsActive)
+                                    {
+                                        <span class="badge bg-light text-dark">
+                                            Активні
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-secondary">
+                                            Вимкнені
+                                        </span>
+                                    }
+
+                                </div>
+
+                            </div>
+
+                            @if (!string.IsNullOrWhiteSpace(
+                                                item.CardNumber))
+                            {
+                                <div class="mb-3">
+
+                                    <div class="text-secondary small">
+                                        Номер картки
+                                    </div>
+
+                                    <div class="font-monospace fs-5">
+                                        @item.CardNumber
+                                    </div>
+
+                                </div>
+                            }
+
+                            @if (!string.IsNullOrWhiteSpace(item.Iban))
+                            {
+                                <div class="mb-3">
+
+                                    <div class="text-secondary small">
+                                        IBAN
+                                    </div>
+
+                                    <div class="font-monospace text-break">
+                                        @item.Iban
+                                    </div>
+
+                                </div>
+                            }
+
+                            @if (!string.IsNullOrWhiteSpace(
+                                                item.RecipientName))
+                            {
+                                <div class="mb-2">
+
+                                    <span class="text-secondary">
+                                        Отримувач:
+                                    </span>
+
+                                    @item.RecipientName
+
+                                </div>
+                            }
+
+                            @if (!string.IsNullOrWhiteSpace(
+                                                item.TaxNumber))
+                            {
+                                <div class="mb-2">
+
+                                    <span class="text-secondary">
+                                        ІПН / ЄДРПОУ:
+                                    </span>
+
+                                    @item.TaxNumber
+
+                                </div>
+                            }
+
+                            @if (!string.IsNullOrWhiteSpace(
+                                                item.BankName))
+                            {
+                                <div class="mb-2">
+
+                                    <span class="text-secondary">
+                                        Банк:
+                                    </span>
+
+                                    @item.BankName
+
+                                </div>
+                            }
+
+                            @if (!string.IsNullOrWhiteSpace(
+                                                item.AdditionalInformation))
+                            {
+                                <div class="bg-light rounded-3 p-3 mt-3">
+                                    @item.AdditionalInformation
+                                </div>
+                            }
+
+                        </div>
+
+                        <div class="card-footer bg-white border-0 p-4 pt-0">
+
+                            <div class="d-flex flex-wrap gap-2">
+
+                                <a asp-controller="AdminPaymentDetails"
+                                   asp-action="Edit"
+                                   asp-route-id="@item.Id"
+                                   class="btn btn-outline-dark">
+
+                                    <i class="bi bi-pencil"></i>
+                                    Редагувати
+
+                                </a>
+
+                                @if (!item.IsDefault)
+                                {
+                                    <form method="post"
+                                          asp-controller="AdminPaymentDetails"
+                                          asp-action="SetDefault"
+                                          asp-route-id="@item.Id">
+
+                                        <button type="submit"
+                                                class="btn btn-outline-success">
+
+                                            <i class="bi bi-check-circle"></i>
+                                            Зробити основними
+
+                                        </button>
+
+                                    </form>
+                                }
+
+                                <form method="post"
+                                      asp-controller="AdminPaymentDetails"
+                                      asp-action="Delete"
+                                      asp-route-id="@item.Id"
+                                      onsubmit="return confirm(
+                                                  'Видалити ці реквізити?');">
+
+                                    <button type="submit"
+                                            class="btn btn-outline-danger">
+
+                                        <i class="bi bi-trash"></i>
+                                        Видалити
+
+                                    </button>
+
+                                </form>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+            }
+
+        </div>
+    }
+
+</div>

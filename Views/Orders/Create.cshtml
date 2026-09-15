@@ -1,5 +1,5 @@
 ﻿@using System.Globalization
-@using lizari.Data.Entities
+
 @using lizari.Entities
 @model lizari.Models.OrderModels.OrderCreateViewModel
 
@@ -9,6 +9,11 @@
     string unitPriceInvariant =
         Model.UnitPrice.ToString(
             CultureInfo.InvariantCulture);
+}
+@section Styles {
+    <link rel="stylesheet"
+          href="~/css/order-create.css"
+          asp-append-version="true">
 }
 
 <div class="container py-5">
@@ -127,7 +132,7 @@
                         <h3 class="h5 fw-bold mb-3">
                             Доставка
                         </h3>
-                        <div class="mb-3">
+                        <div class="mb-3 position-relative">
 
                             <label asp-for="City"
                                    class="form-label">
@@ -135,16 +140,27 @@
 
                             <input asp-for="City"
                                    class="form-control"
-                                   autocomplete="address-level2"
-                                   placeholder="Наприклад: Одеса">
+                                   autocomplete="off"
+                                   placeholder="Почніть вводити місто">
+
+                            <input asp-for="CityRef"
+                                   type="hidden">
+
+                            <div id="citySuggestions"
+                                 class="list-group np-suggestions d-none">
+                            </div>
 
                             <span asp-validation-for="City"
                                   class="text-danger small">
                             </span>
 
+                            <span asp-validation-for="CityRef"
+                                  class="text-danger small">
+                            </span>
+
                         </div>
 
-                        <div class="mb-4">
+                        <div class="mb-4 position-relative">
 
                             <label asp-for="DeliveryAddress"
                                    class="form-label">
@@ -152,16 +168,23 @@
 
                             <input asp-for="DeliveryAddress"
                                    class="form-control"
-                                   placeholder="Наприклад: відділення №15">
+                                   autocomplete="off"
+                                   placeholder="Оберіть місто, потім відділення">
+
+                            <input asp-for="WarehouseRef"
+                                   type="hidden">
+
+                            <div id="warehouseSuggestions"
+                                 class="list-group np-suggestions d-none">
+                            </div>
 
                             <span asp-validation-for="DeliveryAddress"
                                   class="text-danger small">
                             </span>
 
-                            <div class="form-text">
-                                Вкажіть номер відділення,
-                                поштомату або повну адресу доставки.
-                            </div>
+                            <span asp-validation-for="WarehouseRef"
+                                  class="text-danger small">
+                            </span>
 
                         </div>
 

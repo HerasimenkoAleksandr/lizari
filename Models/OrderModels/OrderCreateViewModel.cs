@@ -1,4 +1,4 @@
-﻿using lizari.Data.Entities;
+﻿
 using lizari.Entities;
 using System.ComponentModel.DataAnnotations;
 
@@ -72,8 +72,8 @@ public class OrderCreateViewModel
 
 
     // Идентификатор города Новой Почты
-    //[Required(
-    //    ErrorMessage = "Оберіть місто зі списку.")]
+    [Required(
+        ErrorMessage = "Оберіть місто зі списку.")]
     public string CityRef { get; set; } = string.Empty;
 
 
@@ -89,8 +89,8 @@ public class OrderCreateViewModel
 
 
     // Идентификатор отделения или почтомата
-    //[Required(
-    //    ErrorMessage = "Оберіть відділення зі списку.")]
+    [Required(
+        ErrorMessage = "Оберіть відділення зі списку.")]
     public string WarehouseRef { get; set; } = string.Empty;
 
 
@@ -102,7 +102,7 @@ public class OrderCreateViewModel
         ErrorMessage = "Оберіть спосіб оплати.")]
     [Display(Name = "Спосіб оплати")]
     public PaymentMethod PaymentMethod { get; set; } =
-        PaymentMethod.CashOnDelivery;
+    lizari.Entities.PaymentMethod.CashOnDelivery;
 
 
     // =========================
